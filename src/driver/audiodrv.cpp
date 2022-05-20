@@ -2,29 +2,12 @@
 #include <stdio.h>
 
 
-extern "C" {
-    #include <alsa/asoundef.h>
-    #include <alsa/asoundlib.h>
-    #include <pthread.h>
-};
-
-
 
 #define PCM_DEVICE "default"
 
 #define LOGS(X) { printf("%s\n", X); fflush(stdout); }
 
-static int                       pcm;
 static unsigned int              tmp;
-static int                       channels = 1;
-static int                       rate = 44100;
-static snd_pcm_t               * pcm_handle;
-static snd_pcm_hw_params_t     * params;
-static snd_pcm_uframes_t         frames;
-static int                       buffsize;
-static int16_t                   buff1[1024*4];
-static int16_t                   buff2[1024*4];
-static pthread_t                 thr;
 
 VHAudioDriver                    globalAudioDriver;
 
@@ -42,21 +25,14 @@ static void* _workerThreadProc(void* rawArg) {
     pthread_exit(nullptr);
 }
 
+VHAudioDriver::VHAudioDriver()
+    : flagInit(false), flagExit(false), flagFillData(false), buffidx(0),
+      pcm(-1), pcm_handle(nullptr), params(nullptr), buffsize(0), buff1(),
+      buff2() {}
 
-VHAudioDriver::VHAudioDriver() :
-    flagInit(false),
-    flagExit(false),
-    flagFillData(false),
-    buffidx(0)
-{
-
-}
-
-
-VHAudioDriver::~VHAudioDriver()
-{
-    if(flagInit)
-        Deinit();
+VHAudioDriver::~VHAudioDriver() {
+  if (flagInit)
+    Deinit();
 }
 
 bool VHAudioDriver::Init()
