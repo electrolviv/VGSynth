@@ -11,25 +11,21 @@ public:
     static const int WNDWIDTH = 256;
     static const int WNDHEIGHT = 256;
 
-    WNDMasterChannel()  { }
+    WNDMasterChannel() {}
     ~WNDMasterChannel() { }
 
     void            Init();
     void            forceexit();
 
-    SDL_Window  *    window;
+    SDL_Window *window = nullptr;
 
-    void        *    task(void *parg);
+    void *task(void *parg);
 
-private:
+  private:
+    bool flagExit = false;
+    uint32_t gfxbuffer[WNDWIDTH * WNDHEIGHT] = {0};
+    SDL_Renderer *renderer = nullptr;
 
-        bool            flagExit = false;
-
-        uint32_t        gfxbuffer[WNDWIDTH * WNDHEIGHT];
-
-        SDL_Renderer *  renderer;
-
-        void            RenderBuffer();
-        void            RenderChannels();
-
+    void RenderBuffer();
+    void RenderChannels();
 };

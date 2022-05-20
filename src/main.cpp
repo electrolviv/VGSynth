@@ -23,7 +23,10 @@
 #define INRANGE(V, F, T) ((V >= F) && (V <= T))
 
 int16_t *srcbuff = nullptr;
-int16_t     *   scr_GetAudBuffPtr() { return srcbuff; }
+int scrbufl;
+
+int16_t *scr_GetAudBuffPtr() { return srcbuff; }
+int scr_GetAudBuffLen() { return scrbufl; }
 
 enum eAction { eActionOk = 0, eActionErr, eActionExitApp };
 
@@ -70,8 +73,12 @@ static void AudioLoop() {
     // Fill audio buffer
     if (globalAudioDriver.IsDataNeed()) {
       pbuff = globalAudioDriver.GetBufferPtr(&bufflen);
+
+      // GFX cached buffer params
       srcbuff = pbuff;
-      RenderBuffer(pbuff, bufflen);
+      scrbufl = bufflen;
+
+      RenderAudioBuffer(pbuff, bufflen);
       globalAudioDriver.ResetFlagDataNeed();
     }
 

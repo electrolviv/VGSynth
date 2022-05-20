@@ -24,46 +24,42 @@ void pattern_tick() {
 }
 */
 
-void RenderBuffer(int16_t *presult, int buflen) {
+void RenderAudioBuffer(int16_t *presult, int buflen) {
 
-    uint8_t k;
+  uint8_t k;
 
-    if(gKeyboard.get(&k)) {
+  if (gKeyboard.get(&k)) {
 
-        printf("Keyget %d\n", k);
-        uint16_t freq = VHMIDI::pckeyfreq(k);
+    printf("Keyget %d\n", k);
+    uint16_t freq = VHMIDI::pckeyfreq(k);
 
-        channels[channelreadyidx].Press(freq);
-        channelreadyidx++;
-        if(channelreadyidx>=DEF_AUDIO_CHN_CNT)
-            channelreadyidx = 0;
+    channels[channelreadyidx].Press(freq);
+    channelreadyidx++;
+    if (channelreadyidx >= DEF_AUDIO_CHN_CNT)
+      channelreadyidx = 0;
+  }
+
+  for (int i = 0; i < buflen; i++) {
+
+    /*
+    if(!gRuntimeClock.runtime_bmp_clock) {
+        pattern_tick();
     }
+    */
 
-    for(int i=0; i < buflen; i++) {
+    int16_t r = 0;
+    for (int z = 0; z < DEF_AUDIO_CHN_CNT; z++)
+      r += channels[z].Render();
 
+    presult[i] = r;
 
-        /*
-        if(!gRuntimeClock.runtime_bmp_clock) {
-            pattern_tick();
-        }
-        */
-
-        int16_t r = 0;
-        for (int z = 0; z < DEF_AUDIO_CHN_CNT; z++)
-          r += channels[z].Render();
-
-        presult[i] = r;
-
-        // Next clk
-        gRuntimeClock.ClkTick();
-        if(!gRuntimeClock.runtime_bmp_clock) {
-            patterns.NextPos();
-        }
-
+    // Next clk
+    gRuntimeClock.ClkTick();
+    if (!gRuntimeClock.runtime_bmp_clock) {
+      patterns.NextPos();
     }
-
+  }
 }
-
 
 void MakeBufferTest(int16_t *parr, uint16_t len, int16_t note) {
 

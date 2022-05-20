@@ -6,5 +6,5 @@
 
 #include "channel.hpp"
 
-void RenderBuffer(int16_t *presult, int buflen);
+void RenderAudioBuffer(int16_t *presult, int buflen);
 void MakeBufferTest(int16_t *parr, uint16_t len, int16_t note);
