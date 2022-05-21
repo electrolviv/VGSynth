@@ -27,31 +27,33 @@ void WNDMasterChannel::Init() {
 
 void WNDMasterChannel::forceexit()     { flagExit = true; }
 
-void WNDMasterChannel::RenderBuffer() {
+void WNDMasterChannel::RenderGFXBuffer(VGRect *prect) {
 
   int16_t *parr = scr_GetAudBuffPtr();
   if (parr == nullptr)
     return;
 
-  memset(gfxbuffer, 0x00, WNDWIDTH * WNDHEIGHT * 4);
+  for (int i = 0; i < prect->w; i++) {
 
-  for (int i = 0; i < WNDWIDTH; i++) {
     uint8_t v = 255 - (127 + (parr[i] / 256));
-    gfxbuffer[(v * WNDWIDTH) + i] = 0xFF;
+
+    // Set pixel
+    gfxbuffer[(v * WNDWIDTH) + i] = 0xFF00;
   }
 }
 
-void WNDMasterChannel::RenderChannels() {
+void WNDMasterChannel::RenderChannelsState() {
 
   for (int i = 0; i < DEF_AUDIO_CHN_CNT; i++) {
+    auto keystate = channels[i].voiceBase.keyState;
+    bool chnon = (keystate != VHAudioChannel::nKeyState_Off);
+    Uint8 r = chnon ? 255 : 55;
+    Uint8 g = chnon ? 255 : 55;
+    Uint8 b = chnon ? 255 : 55;
+    SDL_SetRenderDrawColor(renderer, r, g, b, SDL_ALPHA_OPAQUE);
 
-    if (channels[i].voiceBase.keyState == VHAudioChannel::nKeyState_Off) {
-      SDL_SetRenderDrawColor(renderer, 55, 55, 55, SDL_ALPHA_OPAQUE);
-    } else {
-      SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
-    }
-
-    SDL_RenderDrawLine(renderer, 2, i * 16, 8, (i * 16) + 10);
+    int ypos = i * 16;
+    SDL_RenderDrawLine(renderer, 2, ypos, 8, ypos + 10);
   }
   SDL_RenderPresent(renderer);
 }
@@ -79,12 +81,18 @@ void *WNDMasterChannel::task(void *parg) {
   SDL_Rect rectscr = {0, 0, WNDWIDTH, WNDHEIGHT};
 
   while (!flagExit) {
-    RenderBuffer();
 
+    // Clear full scr ( ? )
+    memset(gfxbuffer, 0x00, WNDWIDTH * WNDHEIGHT * 4);
+
+    VGRect chnrect = {0, 0, 256, 256};
+    RenderGFXBuffer(&chnrect);
+
+    // copy bitmap to the screen
     if (SDL_BlitScaled(data_sf, nullptr, screen, &rectscr) == 0)
       SDL_UpdateWindowSurface(window);
 
-    RenderChannels();
+    RenderChannelsState();
 
     // 50/20 Hz
     SDL_Delay(50); // 20

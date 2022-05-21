@@ -9,10 +9,8 @@ static bool         sintblDone = false;
 static int16_t      sintbl[1024];
 static VHSinTblInit sintlInit;
 
-
-VHSinTblInit::VHSinTblInit()
-{
-    if(!sintblDone) {
+VHSinTblInit::VHSinTblInit() {
+  if (!sintblDone) {
 
     // Make SIN
     for(int i=0;i<1024;i++) {
@@ -21,7 +19,6 @@ VHSinTblInit::VHSinTblInit()
 
     sintblDone = true;
     }
-
 }
 
 VHSinTblInit::~VHSinTblInit()
