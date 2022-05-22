@@ -20,26 +20,26 @@ VHAudioChannel::VHAudioChannel() {
   //  voiceBase.amplitude = 1024; // 1023 is 100%, 2048 is 200%
   voiceBase.amplitude = 256; // 1023 is 100%, 2048 is 200%
 
-  voiceDual.subenabled = 0;
+  voiceDual.subenabled = DBG_CHN_DUAL_EN;
   voiceDual.subtype = +4;
   voiceDual.subamplitude = 64;
 
-  voiceTrial.subenabled = 1;
+  voiceTrial.subenabled = DBG_CHN_TRIA_EN;
   voiceTrial.subtype = -3;
   voiceTrial.subamplitude = 64;
 
-  voiceOU.subenabled = 1;
+  voiceOU.subenabled = DBG_CHN_VOIOU_EN;
   voiceOU.subtype = 0x7FFE;
   voiceOU.subamplitude = 64;
 
-  voiceOD.subenabled = 1;
+  voiceOD.subenabled = DBG_CHN_VOIOD_EN;
   voiceOD.subtype = 0x7FFE;
   voiceOD.subamplitude = 64;
 
-  sEffExtruder.enabled = 1;
+  sEffExtruder.enabled = DBG_CHN_EXTRUD_EN;
   sEffExtruder.level = 1024 * 1 / 16;
 
-  sEffDist.enabled = 1;
+  sEffDist.enabled = DBG_CHN_DISTOR_EN;
   sEffDist.value = (int16_t)(4 * 1024);
 
   flangePos = 0;
