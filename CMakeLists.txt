@@ -46,6 +46,6 @@ target_include_directories(${PRJNAME}
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/driver>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/instruments>
-#        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ZXOps
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/patterns>
     )
 

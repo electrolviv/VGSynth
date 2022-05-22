@@ -1,76 +1,83 @@
 #include "channel.hpp"
 #include "math/sintbl.hpp"
 
-enum enGensigType {
-    eGensigType_SIN = 0,
-    eGensigType_SAW,
-    eGensigType_MEA,
-    eGensigType_SINI
-};
 
 
 static int slidespd = 0;
 
-VHAudioChannel::VHAudioChannel()    {
+VHAudioChannel::VHAudioChannel() {
 
+  //    volumePattern.attackClocks  = 1000;
+  //    volumePattern.holdcClocks   = 1600;
+  //    volumePattern.releaseClocks = 2000;
 
-//    volumePattern.attackClocks  = 1000;
-//    volumePattern.holdcClocks   = 1600;
-//    volumePattern.releaseClocks = 2000;
+  volumePattern.attackClocks = 240;
+  volumePattern.holdcClocks = 1200;
+  volumePattern.releaseClocks = 64000;
 
-    volumePattern.attackClocks  = 400;
-    volumePattern.holdcClocks   = 200;
-    volumePattern.releaseClocks = 13000;
+  voiceBase.freeFlag = true;
+  voiceBase.sigtype = eGensigType_SINI;
+  //  voiceBase.amplitude = 1024; // 1023 is 100%, 2048 is 200%
+  voiceBase.amplitude = 256; // 1023 is 100%, 2048 is 200%
 
-    voiceBase.freeFlag        = true;
-    voiceBase.sigtype         = eGensigType_SINI;
-    voiceBase.amplitude       = 1024; // 1023 is 100%, 2048 is 200%
+  voiceDual.subenabled = 0;
+  voiceDual.subtype = +4;
+  voiceDual.subamplitude = 64;
 
-    voiceDual.subenabled      = 1;
-    voiceDual.subtype         = +4;
-    voiceTrial.subamplitude   = 256;
+  voiceTrial.subenabled = 1;
+  voiceTrial.subtype = -3;
+  voiceTrial.subamplitude = 64;
 
-    voiceTrial.subenabled     = 1;
-    voiceTrial.subtype        = -2;
-    voiceTrial.subamplitude   = 256;
+  voiceOU.subenabled = 1;
+  voiceOU.subtype = 0x7FFE;
+  voiceOU.subamplitude = 64;
 
-    voiceOU.subenabled        = 1;
-    voiceOU.subtype           = 0x7FFE;
-    voiceOU.subamplitude      = 256;
+  voiceOD.subenabled = 1;
+  voiceOD.subtype = 0x7FFE;
+  voiceOD.subamplitude = 64;
 
-    voiceOD.subenabled        = 1;
-    voiceOD.subtype           = 0x7FFE;
-    voiceOD.subamplitude      = 256;
+  sEffExtruder.enabled = 1;
+  sEffExtruder.level = 1024 * 1 / 16;
 
-    sEffExtruder.enabled      = 1;
-    sEffExtruder.level        = 1024*1/16;
+  sEffDist.enabled = 1;
+  sEffDist.value = (int16_t)(4 * 1024);
 
-    sEffDist.enabled          = 1;
-    sEffDist.value            = (int16_t)( 4*1024);
-
-    flangePos = 0;
-
+  flangePos = 0;
 }
 
-VHAudioChannel::~VHAudioChannel()   {
-}
+VHAudioChannel::~VHAudioChannel() {}
 
-void VHAudioChannel::Press(int note)
-{
-    volumeRuntime.state = 0;
-    volumeRuntime.pos   = 0;
+#define FREQMACRO1(NOTE) (((uint32_t)65536) * (NOTE)) / 44100
 
-    voiceBase.keyState  = nKeyState_Attack;
+void VHAudioChannel::Press(int note) {
+  volumeRuntime.state = 0;
+  volumeRuntime.pos = 0;
 
-    voiceBase.frequency = note;
-    voiceBase.freqfangle = ( ((uint32_t)65536) * note) / 44100;
-    voiceBase.freqrangle = 0;
+  voiceBase.keyState = nKeyState_Attack;
 
-    if(voiceDual.subenabled) {
-        voiceDual.freqfangle = ( ((uint32_t)65536) * (note+voiceDual.subtype)) / 44100;
-        voiceDual.freqrangle = 0;
-    }
+  voiceBase.frequency = note;
+  voiceBase.freqfangle = FREQMACRO1(note);
+  voiceBase.freqrangle = 0;
 
+  if (voiceDual.subenabled) {
+    voiceDual.freqfangle = FREQMACRO1(note + voiceDual.subtype);
+    voiceDual.freqrangle = 0;
+  }
+
+  if (voiceTrial.subenabled) {
+    voiceTrial.freqfangle = FREQMACRO1(note + voiceTrial.subtype);
+    voiceTrial.freqrangle = 0;
+  }
+
+  if (voiceOU.subenabled) {
+    voiceOU.freqfangle = FREQMACRO1(note + voiceOU.subtype);
+    voiceOU.freqrangle = 0;
+  }
+
+  if (voiceOD.subenabled) {
+    voiceOD.freqfangle = FREQMACRO1(note + voiceOD.subtype);
+    voiceOD.freqrangle = 0;
+  }
 }
 
 void VHAudioChannel::Off()
@@ -132,9 +139,10 @@ int16_t VHAudioChannel::Render()
     if(voiceDual.subenabled) {
         voiceDual.freqrangle += voiceDual.freqfangle;
         voiceDual.freqrangle &= 0xFFFF;
-        uint16_t angle = voiceDual.freqrangle >> 6;
-        uint16_t amplitude = amplitudeRuntime * voiceDual.subamplitude >> 10;
-        r += GetSourceGenerator(voiceBase.sigtype, angle) * (amplitude/2) / 1024;
+        uint16_t langle = voiceDual.freqrangle >> 6;
+        uint16_t lamplitude = amplitudeRuntime * voiceDual.subamplitude >> 10;
+        r += GetSourceGenerator(voiceBase.sigtype, langle) * (lamplitude / 2) /
+             1024;
     }
 
     // r += flangeVal/2;
