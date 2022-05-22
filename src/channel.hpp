@@ -1,10 +1,6 @@
 #pragma once
 
-#include <stdint.h>
-
-
-#define     DEF_AUDIO_CHN_CNT       16
-
+#include "defs.hpp"
 
 class VHAudioChannel {
 
@@ -48,8 +44,7 @@ public:
         // 0 sin    ~~~~~~~~
         // 1 saw    /\/\/\/\
         // 2 mea    __``__``
-        int  sigtype;
-
+        uint8_t sigtype;
     };
 
     struct stSubVoice {
@@ -83,8 +78,8 @@ public:
     stBaseVoice         voiceBase;     // Main voice
     stSubVoice          voiceDual;     // Near 1 voice
     stSubVoice          voiceTrial;    // Near 2 voice
-    stSubVoice          voiceOD;       // Lower octave
-    stSubVoice          voiceOU;       // Upper octave
+    stSubVoice voiceOD;                // octave down
+    stSubVoice voiceOU;                // octave up
 
     stEffectDistortion  sEffDist; // Distortion ;)
     stEffectExtruder    sEffExtruder;
@@ -122,9 +117,6 @@ public:
 
     int16_t Render();
 
-private:
-
+  private:
     int32_t GetSourceGenerator(int sigtype, uint16_t angle);
-
 };
-
