@@ -5,8 +5,14 @@
 #include <sys/time.h>
 #include <stdio.h>
 
-#define DEF_AUDIO_CHN_CNT 16
-#define     BUFF_CHUNK_SIZE     (44100)
+#define PCM_DEVICE "default"
+// #define PCM_DEVICE "plughw"
+
+#define AUDIO_CHN_CNT 16
+
+#define BUFF_CHUNK_SIZE (44100)
+
+#define AUDIO_BUFF_SIZE (1024 * 4)
 
 enum enGensigType {
   eGensigType_SIN = 0,
@@ -14,6 +20,8 @@ enum enGensigType {
   eGensigType_MEA,
   eGensigType_SINI
 };
+
+#define INRANGE(V, F, T) ((V >= F) && (V <= T))
 
 #define DBG_CHN_DUAL_EN 0
 #define DBG_CHN_TRIA_EN 0

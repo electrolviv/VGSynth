@@ -1,64 +1,60 @@
-#include "defs.hpp"
-#include "midi/vhmididefs.hpp"
 #include "rendersample.hpp"
+#include "abuffer.hpp"
+#include "midi/vhmididefs.hpp"
 #include "patterns.hpp"
 
-#include "runtime/sysclock.hpp"
 #include "runtime/keyboard.hpp"
+#include "runtime/sysclock.hpp"
 
+// runtime channel
+static uint8_t channelreadyidx = 0;
 
-extern VHAudioChannel      channels[DEF_AUDIO_CHN_CNT];
-static uint8_t             channelreadyidx = 0;
+extern VHAudioChannel channels[AUDIO_CHN_CNT];
 
-/*
-void pattern_tick() {
+extern ABuffer abuffers[AUDIO_CHN_CNT];
 
-    uint16_t *  ppattern    = patterns.Get(patterns.runtimePatternNumber);
-    uint16_t    pos         = patterns.runtimePatternPos;
-    uint16_t    note        = ppattern[pos];
+static void ProcessKey(uint8_t k) {
+  printf("Key %d\n", k);
 
-    if(note==0xFFFF)    { channels[0].Off(); }
-    else if(note == 0)  {  } // Release
-    else                { channels[0].Press(note); }
+  uint16_t freq = VHMIDI::pckeyfreq(k);
 
+  channels[channelreadyidx].Press(freq);
+  channelreadyidx++;
+  if (channelreadyidx >= AUDIO_CHN_CNT)
+    channelreadyidx = 0;
 }
-*/
 
 void RenderAudioBuffer(int16_t *presult, int buflen) {
 
   uint8_t k;
 
   if (gKeyboard.get(&k)) {
-
-    printf("Keyget %d\n", k);
-    uint16_t freq = VHMIDI::pckeyfreq(k);
-
-    channels[channelreadyidx].Press(freq);
-    channelreadyidx++;
-    if (channelreadyidx >= DEF_AUDIO_CHN_CNT)
-      channelreadyidx = 0;
+    ProcessKey(k);
   }
 
-  for (int i = 0; i < buflen; i++) {
-
-    /*
-    if(!gRuntimeClock.runtime_bmp_clock) {
-        pattern_tick();
-    }
-    */
-
-    int16_t r = 0;
-    for (int z = 0; z < DEF_AUDIO_CHN_CNT; z++)
-      r += channels[z].Render();
-
-    presult[i] = r;
-
-    // Next clk
-    gRuntimeClock.ClkTick();
-    if (!gRuntimeClock.runtime_bmp_clock) {
-      patterns.NextPos();
+  for (int j = 0; j < AUDIO_CHN_CNT; j++) {
+    for (int i = 0; i < buflen; i++) {
+      int16_t r = channels[j].Render();
+      abuffers[j].buff[i] = r;
+      presult[i] = (!j) ? r : presult[i] + r;
     }
   }
+
+  //    // Next clk
+  //    gRuntimeClock.ClkTick();
+  //    if (!gRuntimeClock.runtime_bmp_clock) {
+  //      patterns.NextPos();
+  //    }
+
+  //  for (int i = 0; i < buflen; i++) {
+  //    int16_t r = 0;
+  //    for (int z = 0; z < AUDIO_CHN_CNT; z++)
+  //      r += channels[z].Render();
+  //  }
+
+  //  if(!gRuntimeClock.runtime_bmp_clock) {
+  //      pattern_tick();
+  //  }
 }
 
 void MakeBufferTest(int16_t *parr, uint16_t len, int16_t note) {
@@ -108,3 +104,17 @@ void MakeBufferTest(int16_t *parr, uint16_t len, int16_t note) {
         parr[i] = r + r2;
     }
 }
+
+/*
+void pattern_tick() {
+
+uint16_t *  ppattern    = patterns.Get(patterns.runtimePatternNumber);
+uint16_t    pos         = patterns.runtimePatternPos;
+uint16_t    note        = ppattern[pos];
+
+if(note==0xFFFF)    { channels[0].Off(); }
+else if(note == 0)  {  } // Release
+else                { channels[0].Press(note); }
+
+}
+*/

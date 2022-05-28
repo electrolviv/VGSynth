@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stdint.h>
+#include "defs.hpp"
 
 extern "C" {
 #include <alsa/asoundef.h>
@@ -38,8 +38,8 @@ private:
   snd_pcm_hw_params_t *params;
 
   int buffsize;
-  int16_t buff1[1024 * 4];
-  int16_t buff2[1024 * 4];
+  int16_t buff1[AUDIO_BUFF_SIZE];
+  int16_t buff2[AUDIO_BUFF_SIZE];
 
   // thread id
   pthread_t thr;
