@@ -1,9 +1,6 @@
 #include "audiodrv.hpp"
-#include <stdio.h>
 
 
-
-#define PCM_DEVICE "default"
 
 #define LOGS(X) { printf("%s\n", X); fflush(stdout); }
 

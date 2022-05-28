@@ -1,12 +1,13 @@
 #include "masterchannel.hpp"
 
+#include "abuffer.hpp"
 #include "channel.hpp"
 #include "ochannel.hpp"
 
 #define strCAPTION "VGSynth V0.1"
 
-extern  VHAudioChannel   channels[DEF_AUDIO_CHN_CNT];
-
+extern VHAudioChannel channels[AUDIO_CHN_CNT];
+extern ABuffer abuffers[AUDIO_CHN_CNT];
 
 SDL_Thread *thread;
 static pthread_t thr;
@@ -32,7 +33,7 @@ void WNDMasterChannel::forceexit()     { flagExit = true; }
 
 void WNDMasterChannel::RenderChannelsState() {
 
-  for (int i = 0; i < DEF_AUDIO_CHN_CNT; i++) {
+  for (int i = 0; i < AUDIO_CHN_CNT; i++) {
     auto keystate = channels[i].voiceBase.keyState;
     bool chnon = (keystate != VHAudioChannel::nKeyState_Off);
     Uint8 r = chnon ? 255 : 55;
@@ -81,7 +82,9 @@ void *WNDMasterChannel::task(void *parg) {
 	// SDL_Rect destrect = {0, 0, WNDWIDTH, WNDHEIGHT};
 	SDL_Rect dstrect = {i * 260, j * 130, 256, 128};
 
-	int16_t *pabuff = scr_GetAudBuffPtr();
+	// int16_t *pabuff = scr_GetAudBuffPtr();
+	int16_t *pabuff = abuffers[idx].buff;
+
 	if (pabuff != nullptr) {
 
 	  ochannel[idx].render(pabuff);

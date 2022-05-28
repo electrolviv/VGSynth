@@ -1,5 +1,5 @@
+#include "abuffer.hpp"
 #include "stdint.h"
-#include <string>
 
 #include "channel.hpp"
 
@@ -9,10 +9,12 @@
 #include "runtime/sysclock.hpp"
 #include "runtime/keyboard.hpp"
 
+#include <string>
 
-RuntimeClock                    gRuntimeClock;
+RuntimeClock gRuntimeClock;
 
-VHAudioChannel                  channels[16];
+VHAudioChannel channels[AUDIO_CHN_CNT];
+ABuffer abuffers[AUDIO_CHN_CNT];
 
 VHMIDI::stMIDITrackProps        gTracksMeta[VHMIDI_MAXTRACKS];
 
@@ -44,6 +46,4 @@ std::string             midifilename = "mapleaf.mid";
 
 std::string             midifilepath = "/home/vigatron/Dropbox/VHSources/VHSourcesMisc/TestAudio2/midi";
 std::string             midifilefull = midifilepath + "/" + midifilename;
-VHMIDI::VHMIDIFile      gMIDIFile((char *)midifilefull.c_str());
-
-
+VHMIDI::VHMIDIFile gMIDIFile((char *)midifilefull.c_str());

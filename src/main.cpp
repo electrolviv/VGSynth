@@ -20,7 +20,6 @@
 
 #include "runtime/keyboard.hpp"
 
-#define INRANGE(V, F, T) ((V >= F) && (V <= T))
 
 int16_t *srcbuff = nullptr;
 int scrbufl;
@@ -48,7 +47,6 @@ static eAction HandleEvent(const SDL_Event *pevent) {
 
   } else if (etype == SDL_KEYDOWN) {
     uint8_t k = pevent->key.keysym.sym;
-    printf("key %d !\n", k);
     gKeyboard.put(k);
   }
 
@@ -79,6 +77,7 @@ static void AudioLoop() {
       scrbufl = bufflen;
 
       RenderAudioBuffer(pbuff, bufflen);
+
       globalAudioDriver.ResetFlagDataNeed();
     }
 

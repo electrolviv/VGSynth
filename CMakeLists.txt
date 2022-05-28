@@ -23,6 +23,7 @@ file(GLOB_RECURSE srclist_math      src/math/*.cpp src/math/*.hpp )
 file(GLOB_RECURSE srclist_fsys      src/fsys/*.cpp src/fsys/*.hpp )
 file(GLOB_RECURSE srclist_wnd       src/wnd/*.cpp src/wnd/*.hpp src/wnd/*.h )
 file(GLOB_RECURSE srclist_osc       src/osciloscope/*.cpp src/osciloscope/*.hpp )
+file(GLOB_RECURSE srclist_abuffer   src/abuffer/*.cpp src/abuffer/*.hpp )
 
 
 add_executable(${PRJNAME}
@@ -36,6 +37,7 @@ add_executable(${PRJNAME}
     ${srclist_fsys}
     ${srclist_wnd}
     ${srclist_osc}
+    ${srclist_abuffer}
     )
 
 # -lopenal openal
@@ -44,10 +46,11 @@ target_link_libraries(${PRJNAME} ${SDL2_LIBRARIES} ${PTHREAD_LIBRARY} openal aso
 
 target_include_directories(${PRJNAME}
         PRIVATE
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/abuffer>
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/driver>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/instruments>
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/patterns>
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/osciloscope>
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/wnd>
-    )
+)
