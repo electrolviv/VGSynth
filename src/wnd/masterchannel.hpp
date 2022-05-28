@@ -8,8 +8,8 @@ int16_t     *   scr_GetAudBuffPtr();
 class WNDMasterChannel {
 
 public:
-  static const int WNDWIDTH = 512;
-  static const int WNDHEIGHT = 256;
+  static const int WNDWIDTH = (256 * 4);
+  static const int WNDHEIGHT = 128 * 6;
 
   WNDMasterChannel() {}
   ~WNDMasterChannel() {}
@@ -23,7 +23,7 @@ public:
 
 private:
   bool flagExit = false;
-  uint32_t gfxbuffer[WNDWIDTH * WNDHEIGHT] = {0};
+  // uint32_t gfxbuffer[WNDWIDTH * WNDHEIGHT] = {0};
   SDL_Renderer *renderer = nullptr;
 
   void RenderGFXBuffer(VGRect *prect);
