@@ -145,26 +145,29 @@ int16_t VHAudioChannel::Render()
              1024;
     }
 
+#if defined(DBG_CHN_FLANGE_EN)
     // r += flangeVal/2;
+
     flangeVal[flangePos] = r;
     flangePos++;
     if(flangePos==16) flangePos = 0;
 
     r += flangeVal[(flangePos+2)&15];
     r += flangeVal[(flangePos+4)&15];
-    r += flangeVal[(flangePos+6)&15];
+    r += flangeVal[(flangePos + 6) & 15];
+
+#endif
 
     // ---------------
     // Slide
     // ---------------
-//    slidespd++;
-//    if(slidespd==1200) slidespd = 0;
+    slidespd = (slidespd == 6200) ? 0 : slidespd + 1;
 
-//    if(!slidespd)
-//        if(voiceBase.freqfangle>375)
-//            voiceBase.freqfangle--;
+    if (!slidespd)
+      if (voiceBase.freqfangle > 375)
+        voiceBase.freqfangle--;
 
-    return r/2;
+    return r / 4;
 }
 
 int32_t VHAudioChannel::GetSourceGenerator(int sigtype, uint16_t angle)

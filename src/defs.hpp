@@ -15,9 +15,10 @@ enum enGensigType {
   eGensigType_SINI
 };
 
-#define DBG_CHN_DUAL_EN 1
-#define DBG_CHN_TRIA_EN 1
-#define DBG_CHN_VOIOU_EN 1
-#define DBG_CHN_VOIOD_EN 1
-#define DBG_CHN_EXTRUD_EN 1
-#define DBG_CHN_DISTOR_EN 1
+#define DBG_CHN_DUAL_EN 0
+#define DBG_CHN_TRIA_EN 0
+#define DBG_CHN_VOIOU_EN 0
+#define DBG_CHN_VOIOD_EN 0
+#define DBG_CHN_EXTRUD_EN 0
+#define DBG_CHN_DISTOR_EN 0
+#define DBG_CHN_FLANGE_EN 0
