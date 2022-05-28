@@ -1,6 +1,7 @@
 #include "masterchannel.hpp"
 
 #include "channel.hpp"
+#include "ochannel.hpp"
 
 #define strCAPTION "VGSynth V0.1"
 
@@ -12,8 +13,9 @@ static pthread_t thr;
 
 int16_t * scr_GetAudBuffPtr();
 
+OsciChannel ochannel[16];
 
-static void  *  _run(void *parg) {
+static void *_run(void *parg) {
   return static_cast<WNDMasterChannel *>(parg)->task(nullptr);
 }
 
@@ -27,20 +29,6 @@ void WNDMasterChannel::Init() {
 
 void WNDMasterChannel::forceexit()     { flagExit = true; }
 
-void WNDMasterChannel::RenderGFXBuffer(VGRect *prect) {
-
-  int16_t *parr = scr_GetAudBuffPtr();
-  if (parr == nullptr)
-    return;
-
-  for (int i = 0; i < prect->w; i++) {
-
-    uint8_t v = 255 - (127 + (parr[i] / 256));
-
-    // Set pixel
-    gfxbuffer[(v * WNDWIDTH) + i] = 0xFF00;
-  }
-}
 
 void WNDMasterChannel::RenderChannelsState() {
 
@@ -55,7 +43,6 @@ void WNDMasterChannel::RenderChannelsState() {
     int ypos = i * 16;
     SDL_RenderDrawLine(renderer, 2, ypos, 8, ypos + 10);
   }
-  SDL_RenderPresent(renderer);
 }
 
 void *WNDMasterChannel::task(void *parg) {
@@ -73,26 +60,45 @@ void *WNDMasterChannel::task(void *parg) {
   SDL_RenderClear(renderer);
   SDL_RenderPresent(renderer);
 
-  SDL_Surface *data_sf = SDL_CreateRGBSurfaceFrom(
-      (uint8_t *)gfxbuffer, WNDWIDTH, WNDHEIGHT, 32, WNDWIDTH * 4, sdlmask32(0),
-      sdlmask32(1), sdlmask32(2), 0);
-
   SDL_Surface *screen = SDL_GetWindowSurface(window);
-  SDL_Rect rectscr = {0, 0, WNDWIDTH, WNDHEIGHT};
 
+  for (int i = 0; i < 16; i++)
+    ochannel[i].init();
+
+  // Loop
   while (!flagExit) {
 
-    // Clear full scr ( ? )
-    memset(gfxbuffer, 0x00, WNDWIDTH * WNDHEIGHT * 4);
+    for (int j = 0; j < 4; j++) {
 
-    VGRect chnrect = {0, 0, 256, 256};
-    RenderGFXBuffer(&chnrect);
+      for (int i = 0; i < 4; i++) {
 
-    // copy bitmap to the screen
-    if (SDL_BlitScaled(data_sf, nullptr, screen, &rectscr) == 0)
-      SDL_UpdateWindowSurface(window);
+	int idx = (j * 4) + i;
+
+	// Render Channels : 0-15
+
+	// VGRect srcrect = {0, 0, 256, 128};
+	// VGRect chnrect = {i * 260, j * 130, 256, 128};
+	// SDL_Rect destrect = {0, 0, WNDWIDTH, WNDHEIGHT};
+	SDL_Rect dstrect = {i * 260, j * 130, 256, 128};
+
+	int16_t *pabuff = scr_GetAudBuffPtr();
+	if (pabuff != nullptr) {
+
+	  ochannel[idx].render(pabuff);
+
+	  SDL_Surface *psurface = ochannel[idx].GetSurface();
+
+	  // copy bitmap to the screen
+	  // if (SDL_BlitScaled(psurface, nullptr, screen, &rectscr) == 0)
+	  //  SDL_UpdateWindowSurface(window);
+	  SDL_BlitSurface(psurface, NULL, screen, &dstrect);
+	}
+      }
+    }
 
     RenderChannelsState();
+
+    SDL_RenderPresent(renderer);
 
     // 50/20 Hz
     SDL_Delay(50); // 20
