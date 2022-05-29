@@ -46,6 +46,53 @@ void WNDMasterChannel::RenderChannelsState() {
   }
 }
 
+void WNDMasterChannel::optsSetForeColor(int idx) {
+
+  Uint8 r = optsSelected(idx) ? 255 : 55;
+  Uint8 g = optsSelected(idx) ? 1 : 0;
+  Uint8 b = optsSelected(idx) ? 1 : 0;
+
+  SDL_SetRenderDrawColor(renderer, r, g, b, SDL_ALPHA_OPAQUE);
+}
+
+void WNDMasterChannel::optsSetBackColor(int idx) {
+
+  Uint8 r = optsSelected(idx) ? 155 : 100;
+  Uint8 g = optsSelected(idx) ? 1 : 0;
+  Uint8 b = optsSelected(idx) ? 1 : 0;
+
+  SDL_SetRenderDrawColor(renderer, r, g, b, SDL_ALPHA_OPAQUE);
+}
+
+void WNDMasterChannel::PaintOptions() {
+
+  SDL_Rect rects[6];
+
+  rects[0].x = 10;
+  rects[0].y = 560;
+
+  rects[0].w = optsw;
+  rects[0].h = optsh;
+
+  for (int i = 1; i < 6; i++) {
+    rects[i].x = rects[0].x + (i * (optsw + optsSpacerX));
+    rects[i].y = rects[0].y;
+    rects[i].w = rects[0].w;
+    rects[i].h = rects[0].h;
+  }
+
+  for (int i = 0; i < 6; i++) {
+    optsSetBackColor(i);
+    SDL_RenderFillRect(renderer, &rects[i]);
+    optsSetForeColor(i);
+    SDL_RenderDrawRect(renderer, &rects[i]);
+  }
+}
+
+bool WNDMasterChannel::optsSelected(int idx) {
+  return idx == optsIndexSelected;
+}
+
 void *WNDMasterChannel::task(void *parg) {
 
   if (parg == nullptr)
@@ -100,6 +147,11 @@ void *WNDMasterChannel::task(void *parg) {
     }
 
     RenderChannelsState();
+
+    if (optsRepaintNeed) {
+      PaintOptions();
+      optsRepaintNeed = false;
+    }
 
     SDL_RenderPresent(renderer);
 
