@@ -73,7 +73,7 @@ public:
     ~VHAudioChannel();
 
     stVolumeProps       volumePattern;
-    stVolumeRuntime     volumeRuntime;
+    stVolumeRuntime volumeRuntime = {0, 0};
 
     stBaseVoice         voiceBase;     // Main voice
     stSubVoice          voiceDual;     // Near 1 voice

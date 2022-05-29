@@ -6,7 +6,6 @@
 #include <stdio.h>
 
 #define PCM_DEVICE "default"
-// #define PCM_DEVICE "plughw"
 
 #define AUDIO_CHN_CNT 16
 
