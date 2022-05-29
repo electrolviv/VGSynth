@@ -1,6 +1,5 @@
 #pragma once
 
-#include "rect.h"
 #include "wnd.hpp"
 
 int16_t     *   scr_GetAudBuffPtr();
@@ -28,7 +27,6 @@ public:
 
 private:
   bool flagExit = false;
-  // uint32_t gfxbuffer[WNDWIDTH * WNDHEIGHT] = {0};
   SDL_Renderer *renderer = nullptr;
 
   void RenderGFXBuffer(VGRect *prect);
@@ -47,4 +45,6 @@ private:
   bool optsSelected(int idx);
   void optsSetForeColor(int idx);
   void optsSetBackColor(int idx);
+
+  void textout();
 };

@@ -5,9 +5,11 @@ set(PRJNAME VGSynth)
 project(${PRJNAME})
 
 
-
 find_library(PTHREAD_LIBRARY pthread)
 find_package(SDL2 REQUIRED)
+# find_package(SDL2TFT REQUIRED)
+
+
 include_directories(${SDL2_INCLUDE_DIRS})
 
 
@@ -42,7 +44,7 @@ add_executable(${PRJNAME}
 
 # -lopenal openal
 
-target_link_libraries(${PRJNAME} ${SDL2_LIBRARIES} ${PTHREAD_LIBRARY} openal asound)
+target_link_libraries(${PRJNAME} ${SDL2_LIBRARIES} ${PTHREAD_LIBRARY} openal asound SDL2_ttf)
 
 target_include_directories(${PRJNAME}
         PRIVATE

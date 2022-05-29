@@ -161,7 +161,7 @@ int16_t VHAudioChannel::Render()
     // ---------------
     // Slide
     // ---------------
-#define SLIDE_D_SPD 6200
+#define SLIDE_D_SPD 8000
 #define SLIDE_D_LIMIT_FMIN 1 /* 375 */
 
     slidespd = (slidespd == SLIDE_D_SPD) ? 0 : slidespd + 1;

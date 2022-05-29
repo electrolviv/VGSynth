@@ -64,6 +64,54 @@ void WNDMasterChannel::optsSetBackColor(int idx) {
   SDL_SetRenderDrawColor(renderer, r, g, b, SDL_ALPHA_OPAQUE);
 }
 
+void WNDMasterChannel::textout() {
+
+
+  // this is the color in rgb format,
+  // maxing out all would give you the color white,
+  // and it will be your text's color
+  SDL_Color White = {255, 255, 255};
+
+  // this opens a font style and sets a size
+  // "Sans.ttf";
+  const char *strfile =
+      "/usr/share/fonts/truetype/open-sans/OpenSans-Regular.ttf";
+  // const char *strfile = "/usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf";
+
+  TTF_Font *font = TTF_OpenFont(strfile, 32);
+
+  // as TTF_RenderText_Solid could only be used on
+  // SDL_Surface then you have to create the surface first
+  SDL_Surface *surfaceMessage =
+      TTF_RenderText_Solid(font, "Multichannel", White);
+
+  // now you can convert it into a texture
+  SDL_Texture *Message = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
+
+  SDL_Rect Message_rect; // create a rect
+  Message_rect.x = 0;    // controls the rect's x coordinate
+  Message_rect.y = 620;  // controls the rect's y coordinte
+  Message_rect.w = 200;  // controls the width of the rect
+  Message_rect.h = 34;   // controls the height of the rect
+
+  // (0,0) is on the top left of the window/screen,
+  // think a rect as the text's box,
+  // that way it would be very simple to understand
+
+  // Now since it's a texture, you have to put RenderCopy
+  // in your game loop area, the area where the whole code executes
+
+  // you put the renderer's name first, the Message,
+  // the crop size (you can ignore this if you don't want
+  // to dabble with cropping), and the rect which is the size
+  // and coordinate of your texture
+  SDL_RenderCopy(renderer, Message, NULL, &Message_rect);
+
+  // Don't forget to free your surface and texture
+  SDL_FreeSurface(surfaceMessage);
+  SDL_DestroyTexture(Message);
+}
+
 void WNDMasterChannel::PaintOptions() {
 
   SDL_Rect rects[6];
@@ -87,6 +135,8 @@ void WNDMasterChannel::PaintOptions() {
     optsSetForeColor(i);
     SDL_RenderDrawRect(renderer, &rects[i]);
   }
+
+  textout();
 }
 
 bool WNDMasterChannel::optsSelected(int idx) {
@@ -122,11 +172,7 @@ void *WNDMasterChannel::task(void *parg) {
 
 	int idx = (j * 4) + i;
 
-	// Render Channels : 0-15
-
-	// VGRect srcrect = {0, 0, 256, 128};
-	// VGRect chnrect = {i * 260, j * 130, 256, 128};
-	// SDL_Rect destrect = {0, 0, WNDWIDTH, WNDHEIGHT};
+	// Render channels
 	SDL_Rect dstrect = {i * 260, j * 130, 256, 128};
 
 	// int16_t *pabuff = scr_GetAudBuffPtr();

@@ -4,9 +4,7 @@
 #include "defs.hpp"
 #include <string>
 
-
 #include "midi/vhmidifile.hpp"
-
 
 #include "notes.hpp"
 #include "patterns.hpp"
@@ -32,9 +30,12 @@ enum eAction { eActionOk = 0, eActionErr, eActionExitApp };
 
 static void HandleEventkey(uint8_t key) {
 
-  if (INRANGE(key, 58, 68)) {
+  if (INRANGE(key, SDL_SCANCODE_F1, SDL_SCANCODE_F12)) {
     int idx = key - 58;
     wndMasterChannel.optsSetSelected(idx);
+  } else if (key == SDL_SCANCODE_KP_MINUS) {
+  } else if (key == SDL_SCANCODE_KP_PLUS) {
+
   } else {
     gKeyboard.put(key);
   }
@@ -107,6 +108,8 @@ int main() {
   SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
   setbuf(stdout, NULL);
 
+  TTF_Init();
+
   wndMasterChannel.Init();
 
   InitPatterns();
@@ -118,6 +121,8 @@ int main() {
   wndMasterChannel.forceexit();
   SDL_Delay(100);
   SDL_DestroyWindow(wndMasterChannel.window);
+
+  TTF_Quit();
 
   SDL_Quit();
   printf("Done !\n");
