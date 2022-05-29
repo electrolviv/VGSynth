@@ -20,6 +20,7 @@
 
 #include "runtime/keyboard.hpp"
 
+WNDMasterChannel wndMasterChannel;
 
 int16_t *srcbuff = nullptr;
 int scrbufl;
@@ -28,6 +29,16 @@ int16_t *scr_GetAudBuffPtr() { return srcbuff; }
 int scr_GetAudBuffLen() { return scrbufl; }
 
 enum eAction { eActionOk = 0, eActionErr, eActionExitApp };
+
+static void HandleEventkey(uint8_t key) {
+
+  if (INRANGE(key, 58, 68)) {
+    int idx = key - 58;
+    wndMasterChannel.optsSetSelected(idx);
+  } else {
+    gKeyboard.put(key);
+  }
+}
 
 static eAction HandleEvent(const SDL_Event *pevent) {
 
@@ -46,8 +57,7 @@ static eAction HandleEvent(const SDL_Event *pevent) {
       ret = eActionExitApp;
 
   } else if (etype == SDL_KEYDOWN) {
-    uint8_t k = pevent->key.keysym.sym;
-    gKeyboard.put(k);
+    HandleEventkey(pevent->key.keysym.sym);
   }
 
   if (ret == eActionErr)
@@ -97,7 +107,6 @@ int main() {
   SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
   setbuf(stdout, NULL);
 
-  WNDMasterChannel wndMasterChannel;
   wndMasterChannel.Init();
 
   InitPatterns();

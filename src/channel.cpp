@@ -161,10 +161,13 @@ int16_t VHAudioChannel::Render()
     // ---------------
     // Slide
     // ---------------
-    slidespd = (slidespd == 6200) ? 0 : slidespd + 1;
+#define SLIDE_D_SPD 6200
+#define SLIDE_D_LIMIT_FMIN 1 /* 375 */
+
+    slidespd = (slidespd == SLIDE_D_SPD) ? 0 : slidespd + 1;
 
     if (!slidespd)
-      if (voiceBase.freqfangle > 375)
+      if (voiceBase.freqfangle > SLIDE_D_LIMIT_FMIN)
         voiceBase.freqfangle--;
 
     return r / 4;
