@@ -5,23 +5,29 @@
 class VHAudioChannel {
 
 public:
+  enum enKeyState {
+    nKeyState_Off = 0,
+    nKeyState_Attack,
+    nKeyState_Hold,
+    nKeyState_Decay,
+    nKeyState_Sustain,
+    nKeyState_Release
+  };
 
-    enum enKeyState {
-        nKeyState_Off = 0,
-        nKeyState_Attack,
-        nKeyState_Hold,
-        nKeyState_Decay,
-        nKeyState_Sustain,
-        nKeyState_Release
-    };
+  enum enVolume {
+    nVolumeAttack = 0,
+    nVolumeDecay,
+    nVolumeSustain,
+    nVolumeRelease,
+    nVolumeOff
+  };
 
-    struct stVolumeProps {
-
-        uint16_t    attackClocks;
-        uint16_t    holdcClocks;
-        uint16_t    releaseClocks;
-
-    };
+  struct stVolumeProps { // ADSR
+    uint16_t attackClocks;
+    uint16_t decayClocks;
+    uint16_t sustainClocks;
+    uint16_t releaseClocks;
+  };
 
     struct stVolumeRuntime {
         uint8_t     state;
@@ -38,8 +44,9 @@ public:
         int  freqfangle;    // Calculated from frequency
         int  freqrangle;    // Runtime angle
 
-        int  amplitude;     //
-        int  phase;         // 0 ... 1023  ( 512 = 50% )
+        int amplitudeatt; // Attack amplitude
+        int amplitudesus; // Sustain amplitude
+        int phase;        // 0 ... 1023  ( 512 = 50% )
 
         // 0 sin    ~~~~~~~~
         // 1 saw    /\/\/\/\
@@ -75,13 +82,13 @@ public:
     stVolumeProps       volumePattern;
     stVolumeRuntime volumeRuntime = {0, 0};
 
-    stBaseVoice         voiceBase;     // Main voice
-    stSubVoice          voiceDual;     // Near 1 voice
-    stSubVoice          voiceTrial;    // Near 2 voice
+    stBaseVoice voiceBase;             // Main voice
+    stSubVoice voiceDual;              // Near 1 voice
+    stSubVoice voiceTrial;             // Near 2 voice
     stSubVoice voiceOD;                // octave down
     stSubVoice voiceOU;                // octave up
 
-    stEffectDistortion  sEffDist; // Distortion ;)
+    stEffectDistortion sEffDist; // Distortion ;)
     stEffectExtruder    sEffExtruder;
 
     // Flange draft
@@ -116,6 +123,8 @@ public:
     void Off();
 
     int16_t Render();
+
+    int32_t GetAmpRuntime();
 
   private:
     int32_t GetSourceGenerator(int sigtype, uint16_t angle);

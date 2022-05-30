@@ -12,13 +12,15 @@ VHAudioChannel::VHAudioChannel() {
   //    volumePattern.releaseClocks = 2000;
 
   volumePattern.attackClocks = 240;
-  volumePattern.holdcClocks = 1200;
+  volumePattern.decayClocks = 100;
+  volumePattern.sustainClocks = 1200;
   volumePattern.releaseClocks = 64000;
 
   voiceBase.freeFlag = true;
   voiceBase.sigtype = eGensigType_SINI;
   //  voiceBase.amplitude = 1024; // 1023 is 100%, 2048 is 200%
-  voiceBase.amplitude = 256; // 1023 is 100%, 2048 is 200%
+  voiceBase.amplitudeatt = 512; // 1023 is 100%, 2048 is 200%
+  voiceBase.amplitudesus = 256;
 
   voiceDual.subenabled = DBG_CHN_DUAL_EN;
   voiceDual.subtype = +4;
@@ -80,119 +82,145 @@ void VHAudioChannel::Press(int note) {
   }
 }
 
-void VHAudioChannel::Off()
-{
-    voiceBase.keyState = nKeyState_Off;
-}
+void VHAudioChannel::Off() { voiceBase.keyState = nKeyState_Off; }
 
-int16_t VHAudioChannel::Render()
-{
-    if(voiceBase.keyState == nKeyState_Off)
-        return 0;
+int16_t VHAudioChannel::Render() {
 
-    // Amplitude
-    int32_t amplitudeRuntime;
+  if (voiceBase.keyState == nKeyState_Off)
+    return 0;
 
-    if(volumeRuntime.state==0) {
-        amplitudeRuntime = volumeRuntime.pos * voiceBase.amplitude / volumePattern.attackClocks;
-        volumeRuntime.pos++;
-        if(volumeRuntime.pos == volumePattern.attackClocks) { volumeRuntime.pos = 0; volumeRuntime.state++; }
+  int32_t amplitudeRuntime = GetAmpRuntime();
+  uint16_t adsr[] = {volumePattern.attackClocks, volumePattern.decayClocks,
+                     volumePattern.sustainClocks, volumePattern.releaseClocks};
+  bool last = (volumeRuntime.pos == adsr[volumeRuntime.state]);
+  volumeRuntime.pos = last ? 0 : (volumeRuntime.pos + 1);
+  volumeRuntime.state += last ? 1 : 0;
 
-    } else if(volumeRuntime.state==1) {
-        amplitudeRuntime = voiceBase.amplitude;
-        volumeRuntime.pos++;
-        if(volumeRuntime.pos == volumePattern.holdcClocks) { volumeRuntime.pos = 0; volumeRuntime.state++; }
+  if (volumeRuntime.state == nVolumeOff) {
+    Off();
+    return 0;
+  }
 
-    } else if(volumeRuntime.state==2) {
-        amplitudeRuntime = voiceBase.amplitude - (volumeRuntime.pos * voiceBase.amplitude / volumePattern.releaseClocks);
-        volumeRuntime.pos++;
-        if(volumeRuntime.pos == volumePattern.releaseClocks) { volumeRuntime.pos = 0; volumeRuntime.state++; Off(); }
+  voiceBase.freqrangle += voiceBase.freqfangle;
+  voiceBase.freqrangle &= 0xFFFF;
 
-    }  else {
-        return 0;
+  uint16_t angle = voiceBase.freqrangle >> 6;
+  int16_t r = (int)(GetSourceGenerator(voiceBase.sigtype, angle) *
+                    (amplitudeRuntime / 2)) /
+              1024;
+  bool pside = (r >= 0);
+
+  if (sEffExtruder.enabled) {
+    r += pside ? sEffExtruder.level : (0 - sEffExtruder.level);
+  }
+
+  if (sEffDist.enabled) {
+
+    int16_t over = pside ? (r - sEffDist.value) : ((0 - sEffDist.value) - r);
+
+    // Activate distortion ?
+    if (over > 0) {
+      over /= 8;
+      r = pside ? (sEffDist.value - over)
+                : ((0 - sEffDist.value) + over); // 2/3 todo
     }
+  }
 
-    voiceBase.freqrangle += voiceBase.freqfangle;
-    voiceBase.freqrangle &= 0xFFFF;
-
-    uint16_t    angle = voiceBase.freqrangle >> 6;
-    int16_t     r = (int)(GetSourceGenerator(voiceBase.sigtype, angle) * (amplitudeRuntime/2))/1024;
-    bool        pside = (r>=0);
-
-    if(sEffExtruder.enabled) {
-        r += pside ? sEffExtruder.level : (0-sEffExtruder.level);
-    }
-
-    if(sEffDist.enabled) {
-
-        int16_t over = pside ? (r-sEffDist.value): ( (0-sEffDist.value)-r ) ;
-
-        // Activate distortion ?
-        if(over>0) {
-            over/=8;
-            r = pside ?  (sEffDist.value - over) : ((0-sEffDist.value)+over); // 2/3 todo
-        }
-
-    }
-
-    // Subvoice render
-    if(voiceDual.subenabled) {
-        voiceDual.freqrangle += voiceDual.freqfangle;
-        voiceDual.freqrangle &= 0xFFFF;
-        uint16_t langle = voiceDual.freqrangle >> 6;
-        uint16_t lamplitude = amplitudeRuntime * voiceDual.subamplitude >> 10;
-        r += GetSourceGenerator(voiceBase.sigtype, langle) * (lamplitude / 2) /
-             1024;
-    }
+  // Subvoice render
+  if (voiceDual.subenabled) {
+    voiceDual.freqrangle += voiceDual.freqfangle;
+    voiceDual.freqrangle &= 0xFFFF;
+    uint16_t langle = voiceDual.freqrangle >> 6;
+    uint16_t lamplitude = amplitudeRuntime * voiceDual.subamplitude >> 10;
+    r +=
+        GetSourceGenerator(voiceBase.sigtype, langle) * (lamplitude / 2) / 1024;
+  }
 
 #if defined(DBG_CHN_FLANGE_EN)
-    // r += flangeVal/2;
+  // r += flangeVal/2;
 
-    flangeVal[flangePos] = r;
-    flangePos++;
-    if(flangePos==16) flangePos = 0;
+  flangeVal[flangePos] = r;
+  flangePos++;
+  if (flangePos == 16)
+    flangePos = 0;
 
-    r += flangeVal[(flangePos+2)&15];
-    r += flangeVal[(flangePos+4)&15];
-    r += flangeVal[(flangePos + 6) & 15];
+  r += flangeVal[(flangePos + 2) & 15];
+  r += flangeVal[(flangePos + 4) & 15];
+  r += flangeVal[(flangePos + 6) & 15];
 
 #endif
 
-    // ---------------
-    // Slide
-    // ---------------
+  // ---------------
+  // Slide
+  // ---------------
 #define SLIDE_D_SPD 8000
 #define SLIDE_D_LIMIT_FMIN 1 /* 375 */
 
-    slidespd = (slidespd == SLIDE_D_SPD) ? 0 : slidespd + 1;
+  slidespd = (slidespd == SLIDE_D_SPD) ? 0 : slidespd + 1;
 
-    if (!slidespd)
-      if (voiceBase.freqfangle > SLIDE_D_LIMIT_FMIN)
-        voiceBase.freqfangle--;
+  if (!slidespd)
+    if (voiceBase.freqfangle > SLIDE_D_LIMIT_FMIN)
+      voiceBase.freqfangle--;
 
-    return r / 4;
+  return r / 4;
 }
 
-int32_t VHAudioChannel::GetSourceGenerator(int sigtype, uint16_t angle)
-{
-    uint16_t safeangle  = angle & 1023;
-    uint16_t safeanglei = (angle + 256) & 1023;
+int32_t VHAudioChannel::GetAmpRuntime() {
 
-    if(sigtype == eGensigType_SIN)  { return VHSinTbl::GetValue(safeangle); }
-    else
-    if(sigtype == eGensigType_SAW)  { return -32767 + (safeangle * 64); }
-    else
-    if(sigtype == eGensigType_MEA)  { return (safeangle<512) ? 32000:-32000; }
-    else
-    if(sigtype == eGensigType_SINI) {
-        int16_t s  = VHSinTbl::GetValue(safeanglei);
-        int16_t sm = (s>0)? s : (0-s);
-        if(safeangle<512) { return 32767-sm; } else { return 0 - (32767-sm); }
-    }
-    else
-    {
-        return VHSinTbl::GetValue(safeangle);
-    }
+  int32_t r;
 
-    return 0;
+  switch (volumeRuntime.state) {
+
+  case nVolumeAttack: {
+    r = volumeRuntime.pos * voiceBase.amplitudeatt / volumePattern.attackClocks;
+  } break;
+
+  case nVolumeDecay: {
+    int32_t delta = voiceBase.amplitudeatt - voiceBase.amplitudesus;
+    r = voiceBase.amplitudeatt -
+        (volumeRuntime.pos * delta / volumePattern.decayClocks);
+  } break;
+
+  case nVolumeSustain: {
+    r = voiceBase.amplitudesus;
+
+  } break;
+
+  case nVolumeRelease: {
+    r = voiceBase.amplitudesus - (volumeRuntime.pos * voiceBase.amplitudesus /
+                                  volumePattern.releaseClocks);
+
+  } break;
+
+  default: {
+    r = 0;
+  }
+  }
+
+  return r;
+}
+
+int32_t VHAudioChannel::GetSourceGenerator(int sigtype, uint16_t angle) {
+  uint16_t safeangle = angle & 1023;
+  uint16_t safeanglei = (angle + 256) & 1023;
+
+  if (sigtype == eGensigType_SIN) {
+    return VHSinTbl::GetValue(safeangle);
+  } else if (sigtype == eGensigType_SAW) {
+    return -32767 + (safeangle * 64);
+  } else if (sigtype == eGensigType_MEA) {
+    return (safeangle < 512) ? 32000 : -32000;
+  } else if (sigtype == eGensigType_SINI) {
+    int16_t s = VHSinTbl::GetValue(safeanglei);
+    int16_t sm = (s > 0) ? s : (0 - s);
+    if (safeangle < 512) {
+      return 32767 - sm;
+    } else {
+      return 0 - (32767 - sm);
+    }
+  } else {
+    return VHSinTbl::GetValue(safeangle);
+  }
+
+  return 0;
 }
