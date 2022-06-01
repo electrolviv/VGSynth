@@ -11,16 +11,23 @@ VHAudioChannel::VHAudioChannel() {
   //    volumePattern.holdcClocks   = 1600;
   //    volumePattern.releaseClocks = 2000;
 
-  volumePattern.attackClocks = 240;
-  volumePattern.decayClocks = 100;
-  volumePattern.sustainClocks = 1200;
-  volumePattern.releaseClocks = 64000;
+  volumePattern.attackClocks = CHN_DEFCFG_CLKS_ATT;
+  volumePattern.decayClocks = CHN_DEFCFG_CLKS_DEC;
+  volumePattern.sustainClocks = CHN_DEFCFG_CLKS_SUS;
+  volumePattern.releaseClocks = CHN_DEFCFG_CLKS_REL;
 
   voiceBase.freeFlag = true;
-  voiceBase.sigtype = eGensigType_SINI;
+  voiceBase.sigtype = CHN_DEFCFG_FORM;
+
+  // voiceBase.sigtype = eSigForm_MEA;
+
   //  voiceBase.amplitude = 1024; // 1023 is 100%, 2048 is 200%
-  voiceBase.amplitudeatt = 512; // 1023 is 100%, 2048 is 200%
-  voiceBase.amplitudesus = 256;
+  // 1023 is 100%, 2048 is 200%
+  voiceBase.amplitudeatt = CHN_DEFCFG_AMP_ATT;
+  voiceBase.amplitudesus = CHN_DEFCFG_AMP_SUS;
+
+  voiceBase.asummetry_offs = CHN_DEFCFG_ASYM_OFFSET;
+  voiceBase.asymmetry_val = CHN_DEFCFG_ASYM_VALUE;
 
   voiceDual.subenabled = DBG_CHN_DUAL_EN;
   voiceDual.subtype = +4;
@@ -38,8 +45,9 @@ VHAudioChannel::VHAudioChannel() {
   voiceOD.subtype = 0x7FFE;
   voiceOD.subamplitude = 64;
 
+  // TODO: Fix Extruder
   sEffExtruder.enabled = DBG_CHN_EXTRUD_EN;
-  sEffExtruder.level = 1024 * 1 / 16;
+  sEffExtruder.level = 128; // / 16;
 
   sEffDist.enabled = DBG_CHN_DISTOR_EN;
   sEffDist.value = (int16_t)(4 * 1024);
@@ -48,8 +56,6 @@ VHAudioChannel::VHAudioChannel() {
 }
 
 VHAudioChannel::~VHAudioChannel() {}
-
-#define FREQMACRO1(NOTE) (((uint32_t)65536) * (NOTE)) / 44100
 
 void VHAudioChannel::Press(int note) {
   volumeRuntime.state = 0;
@@ -104,21 +110,23 @@ int16_t VHAudioChannel::Render() {
   voiceBase.freqrangle += voiceBase.freqfangle;
   voiceBase.freqrangle &= 0xFFFF;
 
-  uint16_t angle = voiceBase.freqrangle >> 6;
-  int16_t r = (int)(GetSourceGenerator(voiceBase.sigtype, angle) *
-                    (amplitudeRuntime / 2)) /
-              1024;
-  bool pside = (r >= 0);
+  enSigForm form = (enSigForm)voiceBase.sigtype;
+  uint16_t angle = voiceBase.freqrangle >> 4;
+  uint16_t asym = voiceBase.asymmetry_val;
+  int32_t sigval = VHSigSrc::value(form, angle, asym);
+  int16_t r = (int)(sigval * (amplitudeRuntime / 2)) / 1024;
 
+  // Extruder
+  bool pside = (r >= 0);
   if (sEffExtruder.enabled) {
     r += pside ? sEffExtruder.level : (0 - sEffExtruder.level);
   }
 
+  // Activate distortion ?
   if (sEffDist.enabled) {
 
     int16_t over = pside ? (r - sEffDist.value) : ((0 - sEffDist.value) - r);
 
-    // Activate distortion ?
     if (over > 0) {
       over /= 8;
       r = pside ? (sEffDist.value - over)
@@ -128,15 +136,15 @@ int16_t VHAudioChannel::Render() {
 
   // Subvoice render
   if (voiceDual.subenabled) {
-    voiceDual.freqrangle += voiceDual.freqfangle;
-    voiceDual.freqrangle &= 0xFFFF;
-    uint16_t langle = voiceDual.freqrangle >> 6;
-    uint16_t lamplitude = amplitudeRuntime * voiceDual.subamplitude >> 10;
-    r +=
-        GetSourceGenerator(voiceBase.sigtype, langle) * (lamplitude / 2) / 1024;
+    // voiceDual.freqrangle += voiceDual.freqfangle;
+    // voiceDual.freqrangle &= 0xFFFF;
+    // uint16_t langle = voiceDual.freqrangle >> 6;
+    // uint16_t lamplitude = amplitudeRuntime * voiceDual.subamplitude >> 10;
+    // r += GetSourceGenerator(voiceBase.sigtype, langle) * (lamplitude / 2) /
+    // 1024;
   }
 
-#if defined(DBG_CHN_FLANGE_EN)
+#if (DBG_CHN_FLANGE_EN > 0)
   // r += flangeVal/2;
 
   flangeVal[flangePos] = r;
@@ -153,7 +161,9 @@ int16_t VHAudioChannel::Render() {
   // ---------------
   // Slide
   // ---------------
-#define SLIDE_D_SPD 8000
+#if (DBG_CHN_SLIDE_EN > 0)
+//#define SLIDE_D_SPD 8000
+#define SLIDE_D_SPD 31000
 #define SLIDE_D_LIMIT_FMIN 1 /* 375 */
 
   slidespd = (slidespd == SLIDE_D_SPD) ? 0 : slidespd + 1;
@@ -161,34 +171,39 @@ int16_t VHAudioChannel::Render() {
   if (!slidespd)
     if (voiceBase.freqfangle > SLIDE_D_LIMIT_FMIN)
       voiceBase.freqfangle--;
+#endif
 
-  return r / 4;
+  return r * 2;
 }
 
 int32_t VHAudioChannel::GetAmpRuntime() {
 
   int32_t r;
+  auto pos = volumeRuntime.pos;
 
   switch (volumeRuntime.state) {
 
   case nVolumeAttack: {
-    r = volumeRuntime.pos * voiceBase.amplitudeatt / volumePattern.attackClocks;
+
+    auto wdth = volumePattern.attackClocks;
+    auto hght = voiceBase.amplitudeatt;
+    r = APPROX(pos, hght, wdth);
   } break;
 
   case nVolumeDecay: {
-    int32_t delta = voiceBase.amplitudeatt - voiceBase.amplitudesus;
-    r = voiceBase.amplitudeatt -
-        (volumeRuntime.pos * delta / volumePattern.decayClocks);
+    auto wdth = volumePattern.decayClocks;
+    auto hght = voiceBase.amplitudeatt - voiceBase.amplitudesus;
+    r = voiceBase.amplitudeatt - APPROX(pos, hght, wdth);
   } break;
 
   case nVolumeSustain: {
     r = voiceBase.amplitudesus;
-
   } break;
 
   case nVolumeRelease: {
-    r = voiceBase.amplitudesus - (volumeRuntime.pos * voiceBase.amplitudesus /
-                                  volumePattern.releaseClocks);
+    auto wdth = volumePattern.releaseClocks;
+    auto hght = voiceBase.amplitudesus;
+    r = voiceBase.amplitudesus - APPROX(pos, hght, wdth);
 
   } break;
 
@@ -198,29 +213,4 @@ int32_t VHAudioChannel::GetAmpRuntime() {
   }
 
   return r;
-}
-
-int32_t VHAudioChannel::GetSourceGenerator(int sigtype, uint16_t angle) {
-  uint16_t safeangle = angle & 1023;
-  uint16_t safeanglei = (angle + 256) & 1023;
-
-  if (sigtype == eGensigType_SIN) {
-    return VHSinTbl::GetValue(safeangle);
-  } else if (sigtype == eGensigType_SAW) {
-    return -32767 + (safeangle * 64);
-  } else if (sigtype == eGensigType_MEA) {
-    return (safeangle < 512) ? 32000 : -32000;
-  } else if (sigtype == eGensigType_SINI) {
-    int16_t s = VHSinTbl::GetValue(safeanglei);
-    int16_t sm = (s > 0) ? s : (0 - s);
-    if (safeangle < 512) {
-      return 32767 - sm;
-    } else {
-      return 0 - (32767 - sm);
-    }
-  } else {
-    return VHSinTbl::GetValue(safeangle);
-  }
-
-  return 0;
 }

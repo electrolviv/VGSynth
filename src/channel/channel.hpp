@@ -52,6 +52,9 @@ public:
         // 1 saw    /\/\/\/\
         // 2 mea    __``__``
         uint8_t sigtype;
+
+        uint16_t asummetry_offs;
+        uint16_t asymmetry_val;
     };
 
     struct stSubVoice {
@@ -126,6 +129,4 @@ public:
 
     int32_t GetAmpRuntime();
 
-  private:
-    int32_t GetSourceGenerator(int sigtype, uint16_t angle);
 };

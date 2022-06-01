@@ -4,7 +4,7 @@
 
 #define sdlmask32(X) 0xFF << (X * 8)
 
-#define colorBackground 0x20
+#define colorBackground 0x00
 #define colorValue 0xFF00
 
 OsciChannel::OsciChannel() {}
