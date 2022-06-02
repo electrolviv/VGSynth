@@ -72,7 +72,7 @@ void MakeBufferTest(int16_t *parr, uint16_t len, int16_t note) {
         rangle &= 0xFFFF;
 
         uint16_t angle = rangle >> 6;
-        int16_t r = VHSinTbl::GetValue(angle)/4;
+        int16_t r = VHSigSrc::value(eSigForm_SIN, angle) / 4;
 
         int dlev = 1*1024;
         if(r>0) r+=dlev; else r-=dlev;
@@ -89,7 +89,7 @@ void MakeBufferTest(int16_t *parr, uint16_t len, int16_t note) {
         rangle2 &= 0xFFFF;
 
         uint16_t angle2 = rangle2 >> 6;
-        int16_t  r2 = VHSinTbl::GetValue(angle2)/4;
+        int16_t r2 = VHSigSrc::value(eSigForm_SIN, angle2) / 4;
 
         int dlev2 = 1*1024;
         if(r2>0) r2+=dlev2; else r2-=dlev2;

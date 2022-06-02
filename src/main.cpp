@@ -103,7 +103,25 @@ static void AudioLoop() {
   }
 }
 
+void testcase_000_sintable() {
+  printf("TESTCASE #0 : Sin Table\n");
+  for (int i = 0; i < 4096; i++) {
+
+    if (i == 3072) {
+      asm("nop");
+    }
+
+    int16_t val = VHSigSrc::value(eSigForm_SIN, i);
+    printf("Angle : %d Value : %d\n", i, val);
+  }
+  exit(0);
+}
+
 int main() {
+
+  VHSigSrc::Init();
+
+  // testcase_000_sintable();
 
   SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
   setbuf(stdout, NULL);

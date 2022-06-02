@@ -26,6 +26,7 @@ file(GLOB_RECURSE srclist_fsys      src/fsys/*.cpp src/fsys/*.hpp )
 file(GLOB_RECURSE srclist_wnd       src/wnd/*.cpp src/wnd/*.hpp src/wnd/*.h )
 file(GLOB_RECURSE srclist_osc       src/osciloscope/*.cpp src/osciloscope/*.hpp )
 file(GLOB_RECURSE srclist_abuffer   src/abuffer/*.cpp src/abuffer/*.hpp )
+file(GLOB_RECURSE srclist_channel   src/channel/*.cpp src/channel/*.hpp )
 
 
 add_executable(${PRJNAME}
@@ -40,7 +41,9 @@ add_executable(${PRJNAME}
     ${srclist_wnd}
     ${srclist_osc}
     ${srclist_abuffer}
-    )
+    ${srclist_channel}
+
+)
 
 # -lopenal openal
 
@@ -49,6 +52,7 @@ target_link_libraries(${PRJNAME} ${SDL2_LIBRARIES} ${PTHREAD_LIBRARY} openal aso
 target_include_directories(${PRJNAME}
         PRIVATE
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/abuffer>
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/channel>
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/driver>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/instruments>
