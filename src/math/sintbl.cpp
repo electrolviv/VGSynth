@@ -16,6 +16,30 @@
 #define I16MAX (32767)
 #define I16MIN (-32767)
 
+// sin 0`
+#define SIN1V(V) (sintbl[tblangle])
+
+// sin 90`
+#define SIN2V(V) (sintbl[1023 - V])
+
+// sin 180`
+#define SIN3V(V) (0 - sintbl[tblangle])
+
+// sin 270`
+#define SIN4V(V) (0 - sintbl[1023 - tblangle])
+
+// sin 0` - 1
+#define SIN1D(V) (I16MIN + sintbl[V])
+
+// sin 90` - 1
+#define SIN2D(V) (I16MIN + sintbl[1023 - V])
+
+// sin 270` + 1
+#define SIN3U(V) (I16MAX - sintbl[V])
+
+// sin 270` + 1
+#define SIN4U(V) (I16MAX - sintbl[1023 - V])
+
 static bool sintblDone = false;
 
 // SINTable  1024 x 16-bit / 0..90 degree
@@ -62,6 +86,10 @@ int16_t VHSigSrc::value(enSigForm form, uint16_t angle, uint16_t path1) {
     r = VHSigSrc::meavalue(hh, tblangle);
   } else if (form == eSigForm_ISIN) {
     r = VHSigSrc::isinvalue(hh, tblangle);
+  } else if (form == eSigForm_SIN_SH) {
+    r = VHSigSrc::sinsh(hh, tblangle);
+  } else if (form == eSigForm_SIN_DL) {
+    r = VHSigSrc::sindl(hh, tblangle);
   } else {
     r = 0;
   }
@@ -75,16 +103,16 @@ int16_t VHSigSrc::sinvalue(uint8_t hh, uint16_t tblangle) {
 
   switch (hh) {
   case 0:
-    r = sintbl[tblangle];
+    r = SIN1V(tblangle);
     break;
   case 1:
-    r = sintbl[1023 - tblangle];
+    r = SIN2V(tblangle);
     break;
   case 2:
-    r = 0 - sintbl[tblangle];
+    r = SIN3V(tblangle);
     break;
   default:
-    r = 0 - sintbl[1023 - tblangle];
+    r = SIN4V(tblangle);
     break;
   }
 
@@ -124,18 +152,42 @@ int16_t VHSigSrc::isinvalue(uint8_t hh, uint16_t tblangle) {
 
   switch (hh) {
   case 0:
-    r = I16MAX - sintbl[1023 - tblangle];
+    r = SIN4U(tblangle);
     break;
   case 1:
-    r = I16MAX - sintbl[tblangle];
+    r = SIN3U(tblangle);
     break;
   case 2:
-    r = I16MIN + sintbl[1023 - tblangle];
+    r = SIN2D(tblangle);
     break;
   default:
-    r = I16MIN + sintbl[tblangle];
+    r = SIN1D(tblangle);
     break;
   }
 
   return r;
 }
+
+int16_t VHSigSrc::sinsh(uint8_t hh, uint16_t tblangle) {
+
+  int16_t r;
+
+  switch (hh) {
+  case 0:
+    r = SIN4U(tblangle);
+    break;
+  case 1:
+    r = SIN2V(tblangle);
+    break;
+  case 2:
+    r = SIN2D(tblangle);
+    break;
+  default:
+    r = SIN4V(tblangle);
+    break;
+  }
+
+  return r;
+}
+
+int16_t VHSigSrc::sindl(uint8_t hh, uint16_t tblangle) { return 0; }

@@ -2,7 +2,14 @@
 
 #include <stdint.h>
 
-enum enSigForm { eSigForm_SIN = 0, eSigForm_SAW, eSigForm_MEA, eSigForm_ISIN };
+enum enSigForm {
+  eSigForm_SIN = 0,
+  eSigForm_SAW,
+  eSigForm_MEA,
+  eSigForm_ISIN,
+  eSigForm_SIN_SH, /** Sharp sin mod */
+  eSigForm_SIN_DL  /** Dull sin mod */
+};
 
 class VHSigSrc {
 public:
@@ -16,6 +23,10 @@ public:
   static int16_t sawvalue(uint8_t hh, uint16_t tblangle);
   static int16_t meavalue(uint8_t hh, uint16_t tblangle);
   static int16_t isinvalue(uint8_t hh, uint16_t tblangle);
+
+  // sinus mod
+  static int16_t sinsh(uint8_t hh, uint16_t tblangle);
+  static int16_t sindl(uint8_t hh, uint16_t tblangle);
 
   // Reserved
   static int16_t cosvalue(uint8_t hh, uint16_t angle);

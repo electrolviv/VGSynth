@@ -30,7 +30,9 @@
 //#define CHN_DEFCFG_FORM eSigForm_SIN
 //#define CHN_DEFCFG_FORM eSigForm_SAW
 //#define CHN_DEFCFG_FORM eSigForm_MEA
-#define CHN_DEFCFG_FORM eSigForm_ISIN
+//#define CHN_DEFCFG_FORM eSigForm_ISIN
+#define CHN_DEFCFG_FORM eSigForm_SIN_SH
+//#define CHN_DEFCFG_FORM eSigForm_SIN_DL
 
 // Default channel timing
 
@@ -42,5 +44,7 @@
 #define CHN_DEFCFG_CLKS_SUS 14200
 #define CHN_DEFCFG_CLKS_REL 64000
 
+// TODO ?
 #define CHN_DEFCFG_ASYM_OFFSET 1024
-#define CHN_DEFCFG_ASYM_VALUE 1300
+
+#define CHN_DEFCFG_ASYM_VALUE 2048
