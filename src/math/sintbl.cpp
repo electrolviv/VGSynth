@@ -190,4 +190,24 @@ int16_t VHSigSrc::sinsh(uint8_t hh, uint16_t tblangle) {
   return r;
 }
 
-int16_t VHSigSrc::sindl(uint8_t hh, uint16_t tblangle) { return 0; }
+int16_t VHSigSrc::sindl(uint8_t hh, uint16_t tblangle) {
+
+  int16_t r;
+
+  switch (hh) {
+  case 0:
+    r = SIN1V(tblangle);
+    break;
+  case 1:
+    r = SIN3U(tblangle);
+    break;
+  case 2:
+    r = SIN3V(tblangle);
+    break;
+  default:
+    r = SIN1D(tblangle);
+    break;
+  }
+
+  return r;
+}
