@@ -8,8 +8,6 @@
 class OsciChannel {
 
 public:
-  static const int w = 256;
-  static const int h = 128;
 
   OsciChannel();
   ~OsciChannel();
@@ -22,6 +20,8 @@ public:
   SDL_Surface *GetSurface() { return data_sf; }
 
 private:
+  static const int w = 256;
+  static const int h = 128;
   uint32_t *pgfxbuffer = nullptr;
   int16_t abuff[w];
   SDL_Surface *data_sf = nullptr;

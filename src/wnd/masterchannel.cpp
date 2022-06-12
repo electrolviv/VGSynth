@@ -160,6 +160,7 @@ void *WNDMasterChannel::task(void *parg) {
 
   SDL_Surface *screen = SDL_GetWindowSurface(window);
 
+  // Init channels
   for (int i = 0; i < 16; i++)
     ochannel[i].init();
 
@@ -183,10 +184,6 @@ void *WNDMasterChannel::task(void *parg) {
 	  ochannel[idx].render(pabuff);
 
 	  SDL_Surface *psurface = ochannel[idx].GetSurface();
-
-	  // copy bitmap to the screen
-	  // if (SDL_BlitScaled(psurface, nullptr, screen, &rectscr) == 0)
-	  //  SDL_UpdateWindowSurface(window);
 	  SDL_BlitSurface(psurface, NULL, screen, &dstrect);
 	}
       }
