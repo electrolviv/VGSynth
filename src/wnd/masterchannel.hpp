@@ -20,10 +20,9 @@ public:
 
   void *task(void *parg);
 
-  void optsSetSelected(int idx) {
-    optsIndexSelected = idx;
-    optsRepaintNeed = true;
-  }
+  void optsSetSelected(int idx);
+
+  void setNewForm(uint8_t newform);
 
 private:
   bool flagExit = false;

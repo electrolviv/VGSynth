@@ -205,3 +205,15 @@ void *WNDMasterChannel::task(void *parg) {
   flagExit = true;
   return nullptr;
 }
+
+void WNDMasterChannel::optsSetSelected(int idx) {
+  optsIndexSelected = idx;
+  optsRepaintNeed = true;
+}
+
+void WNDMasterChannel::setNewForm(uint8_t newform) {
+  printf("New FORM=%d\n", newform);
+  for (int i = 0; i < AUDIO_CHN_CNT; i++) {
+    channels[i].setSigForm(newform);
+  }
+}

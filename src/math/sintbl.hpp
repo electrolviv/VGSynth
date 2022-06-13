@@ -3,12 +3,14 @@
 #include <stdint.h>
 
 enum enSigForm {
-  eSigForm_SIN = 0,
+  eSigForm_First = 0,
+  eSigForm_SIN = eSigForm_First,
   eSigForm_SAW,
   eSigForm_MEA,
   eSigForm_ISIN,
   eSigForm_SIN_SH, /** Sharp sin mod */
-  eSigForm_SIN_DL  /** Dull sin mod */
+  eSigForm_SIN_DL, /** Dull sin mod */
+  eSigForm_Last
 };
 
 class VHSigSrc {

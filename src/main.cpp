@@ -23,6 +23,8 @@ WNDMasterChannel wndMasterChannel;
 int16_t *srcbuff = nullptr;
 int scrbufl;
 
+static uint8_t runtimeForm = eSigForm_SIN;
+
 int16_t *scr_GetAudBuffPtr() { return srcbuff; }
 int scr_GetAudBuffLen() { return scrbufl; }
 
@@ -31,11 +33,15 @@ enum eAction { eActionOk = 0, eActionErr, eActionExitApp };
 static void HandleEventkey(uint8_t key) {
 
   if (INRANGE(key, SDL_SCANCODE_F1, SDL_SCANCODE_F12)) {
-    int idx = key - 58;
-    wndMasterChannel.optsSetSelected(idx);
+    wndMasterChannel.optsSetSelected(key - SDL_SCANCODE_F1);
   } else if (key == SDL_SCANCODE_KP_MINUS) {
+    bool ovf = (runtimeForm == eSigForm_First);
+    runtimeForm = ovf ? (eSigForm_Last - 1) : (runtimeForm - 1);
+    wndMasterChannel.setNewForm(runtimeForm);
   } else if (key == SDL_SCANCODE_KP_PLUS) {
-
+    bool ovf = (runtimeForm == (eSigForm_Last - 1));
+    runtimeForm = ovf ? eSigForm_First : (runtimeForm + 1);
+    wndMasterChannel.setNewForm(runtimeForm);
   } else {
     gKeyboard.put(key);
   }
