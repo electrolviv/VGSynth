@@ -1,49 +1,29 @@
 #include "sintbl.hpp"
-#include <math.h>
+#include "mathdefs.h"
 
-#define PI 3.14159265
-
-#ifndef APPROX
-#define APPROX(POS, V, L) ((POS) * (V) / (L))
-#endif
-
-#define ROUNDMASK ((1 << 12) - 1)
-#define ROUNDA(V) (V & ROUNDMASK)
-
-#define DEG180 2048
-#define DEG360 4096
-
-#define I16MAX (32767)
-#define I16MIN (-32767)
-
-// sin 0`
-#define SIN1V(V) (sintbl[tblangle])
-
-// sin 90`
-#define SIN2V(V) (sintbl[1023 - V])
-
-// sin 180`
-#define SIN3V(V) (0 - sintbl[tblangle])
-
-// sin 270`
-#define SIN4V(V) (0 - sintbl[1023 - tblangle])
-
-// sin 0` - 1
-#define SIN1D(V) (I16MIN + sintbl[V])
-
-// sin 90` - 1
-#define SIN2D(V) (I16MIN + sintbl[1023 - V])
-
-// sin 270` + 1
-#define SIN3U(V) (I16MAX - sintbl[V])
-
-// sin 270` + 1
-#define SIN4U(V) (I16MAX - sintbl[1023 - V])
+// TODO: optimization
 
 static bool sintblDone = false;
 
 // SINTable  1024 x 16-bit / 0..90 degree
-static int16_t      sintbl[1024];
+static int16_t sintbl[1024];
+
+// Fast calls reference table
+
+int16_t sinvalue(uint8_t hh, uint16_t tblangle) { return 0; }
+int16_t sawvalue(uint8_t hh, uint16_t tblangle) { return 0; }
+int16_t meavalue(uint8_t hh, uint16_t tblangle) { return 0; }
+int16_t isinvalue(uint8_t hh, uint16_t tblangle) { return 0; }
+int16_t sinsh(uint8_t hh, uint16_t tblangle) { return 0; }
+int16_t sindl(uint8_t hh, uint16_t tblangle) { return 0; }
+int16_t sigr1(uint8_t hh, uint16_t tblangle) { return 0; }
+int16_t sigr2(uint8_t hh, uint16_t tblangle) { return 0; }
+
+typedef int16_t (*fastcall)(uint8_t hh, uint16_t tblangle);
+
+//
+fastcall tblforms[8] = {sinvalue, sawvalue, meavalue, isinvalue,
+                        sinsh,    sindl,    sigr1,    sigr2};
 
 void VHSigSrc::Init() {
   if (!sintblDone) {
@@ -62,19 +42,15 @@ void VHSigSrc::Init() {
  */
 int16_t VHSigSrc::value(enSigForm form, uint16_t angle, uint16_t path1) {
 
-  uint16_t roundangle = ROUNDA(angle);
-
-  // asym 128 is middle
-  uint16_t path2 = DEG360 - path1;
-
-  // half / full
-  bool half = roundangle < path1;
-
-  uint16_t starta = half ? 0 : 2048;
-  uint16_t posa = roundangle - (!half ? path1 : 0);
-  uint16_t safeangle = starta + APPROX(posa, (1 << 11), half ? path1 : path2);
-  uint8_t hh = (safeangle >> 10) & 3;
-  uint16_t tblangle = safeangle & ((1 << 10) - 1);
+  uint16_t roundangle = ROUNDANG(angle);
+  uint16_t path2 = DEG360 - path1;                  // asym 128 is middle
+  bool half = roundangle < path1;                   // half / full
+  uint16_t starta = half ? 0 : 2048;                //
+  uint16_t curpath = half ? path1 : path2;          //
+  uint16_t posa = roundangle - (!half ? path1 : 0); //
+  uint16_t safeangle = starta + APPROX(posa, (1 << 11), curpath); //
+  uint8_t hh = (safeangle >> 10) & 3;                             // quarter
+  uint16_t tblangle = safeangle & ROUNDMASK(10);                  // final angle
 
   int16_t r;
 
@@ -125,16 +101,16 @@ int16_t VHSigSrc::sawvalue(uint8_t hh, uint16_t tblangle) {
 
   switch (hh) {
   case 0:
-    r = APPROX(tblangle, I16MAX, 1024);
+    r = SAW1(tblangle);
     break;
   case 1:
-    r = APPROX(1023 - tblangle, I16MAX, 1024);
+    r = SAW2(tblangle);
     break;
   case 2:
-    r = 0 - APPROX(tblangle, I16MAX, 1024);
+    r = SAW3(tblangle);
     break;
   default:
-    r = 0 - APPROX(1023 - tblangle, I16MAX, 1024);
+    r = SAW4(tblangle);
     break;
   }
 
