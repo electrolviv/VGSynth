@@ -14,13 +14,13 @@
 ---
 ### Dependencies
 
-Install SDL2
+Install `SDL2`
 
 ```
 $ sudo apt install libsdl2-dev
 ```
 
-Install SDL2 Fonts
+Install `SDL2 Fonts`
 
 ```
 $ sudo apt install libsdl2-ttf-dev

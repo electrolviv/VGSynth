@@ -21,7 +21,7 @@ file(GLOB_RECURSE source_list_ins   src/instruments/*.cpp src/instruments/*.hpp 
 file(GLOB_RECURSE source_list_midi  src/midi/*.cpp src/midi/*.hpp )
 file(GLOB_RECURSE srclist_runtime   src/runtime/*.cpp src/runtime/*.hpp )
 file(GLOB_RECURSE srclist_bridges   src/bridges/*.cpp src/bridges/*.hpp )
-file(GLOB_RECURSE srclist_math      src/math/*.cpp src/math/*.hpp )
+file(GLOB_RECURSE srclist_math      src/math/*.cpp src/math/*.hpp src/math/*.h)
 file(GLOB_RECURSE srclist_fsys      src/fsys/*.cpp src/fsys/*.hpp )
 file(GLOB_RECURSE srclist_wnd       src/wnd/*.cpp src/wnd/*.hpp src/wnd/*.h )
 file(GLOB_RECURSE srclist_osc       src/osciloscope/*.cpp src/osciloscope/*.hpp )
