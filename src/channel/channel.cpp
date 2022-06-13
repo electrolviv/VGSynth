@@ -173,7 +173,7 @@ int16_t VHAudioChannel::Render() {
       voiceBase.freqfangle--;
 #endif
 
-  return r * 2;
+  return r;
 }
 
 int32_t VHAudioChannel::GetAmpRuntime() {
@@ -213,4 +213,8 @@ int32_t VHAudioChannel::GetAmpRuntime() {
   }
 
   return r;
+}
+
+void VHAudioChannel::setSigForm(uint8_t sigform) {
+  voiceBase.sigtype = sigform;
 }

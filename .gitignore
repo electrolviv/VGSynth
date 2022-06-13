@@ -3,5 +3,8 @@ tmp
 *.zip
 *orig*
 build
+*.lst
+*.o
+
 
 

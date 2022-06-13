@@ -129,4 +129,5 @@ public:
 
     int32_t GetAmpRuntime();
 
+    void setSigForm(uint8_t sigform);
 };
