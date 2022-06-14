@@ -19,16 +19,16 @@
 #define I16MIN (-32767)
 
 // sin 0`
-#define SIN1V(V) (sintbl[tblangle])
+#define SIN1V(V) (sintbl[V])
 
 // sin 90`
 #define SIN2V(V) (sintbl[1023 - V])
 
 // sin 180`
-#define SIN3V(V) (0 - sintbl[tblangle])
+#define SIN3V(V) (0 - sintbl[V])
 
 // sin 270`
-#define SIN4V(V) (0 - sintbl[1023 - tblangle])
+#define SIN4V(V) (0 - sintbl[1023 - V])
 
 // sin 0` - 1
 #define SIN1D(V) (I16MIN + sintbl[V])
@@ -46,5 +46,10 @@
 #define SAW2(V) APPROX((1023 - V), I16MAX, 1024)
 #define SAW3(V) 0 - APPROX(tblangle, I16MAX, 1024)
 #define SAW4(V) 0 - APPROX(1023 - tblangle, I16MAX, 1024)
+
+#define MEA1 I16MAX
+#define MEA2 I16MAX
+#define MEA3 I16MIN
+#define MEA4 I16MIN
 
 #endif // MATHDEFS_H
