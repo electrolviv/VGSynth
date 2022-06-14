@@ -5,13 +5,13 @@
 enum enSigForm {
   eSigForm_First = 0,
   eSigForm_SIN = eSigForm_First,
-  eSigForm_SAW,
-  eSigForm_MEA,
-  eSigForm_ISIN,
-  eSigForm_SIN_SH, /** Sharp sin mod */
-  eSigForm_SIN_DL, /** Dull sin mod */
-  eSigForm_RESERVED1,
-  eSigForm_RESERVED2,
+  eSigForm_SAW,       /** */
+  eSigForm_MEA,       /** */
+  eSigForm_ISIN,      /** Inverted sin */
+  eSigForm_SIN_SH,    /** Sharp sin mod */
+  eSigForm_SIN_DL,    /** Dull sin mod */
+  eSigForm_RESERVED1, /** Reserved */
+  eSigForm_RESERVED2, /** Reserved */
   eSigForm_Last
 };
 
