@@ -2,6 +2,9 @@
 
 #include "defs.hpp"
 
+#include "fltbnc.hpp"
+#include "fltdec.hpp"
+
 class VHAudioChannel {
 
 public:
@@ -95,11 +98,10 @@ public:
     stEffectExtruder    sEffExtruder;
 
     // Flange draft
-    int16_t             flangeVal[16];
+    int16_t flangeVal[16] = {0};
     uint16_t            flangePos;
 
     // Distortion
-
 
     // Note Released, Note Attack, Note Active
     // swing in active period
@@ -118,8 +120,7 @@ public:
     // Extrude level
 
     // RunTime
-    int  smpls_delay;   // Positive if delay activated
-
+    int smpls_delay = 0; // Positive if delay activated
 
     void Press(int note);
     void Release();
@@ -130,4 +131,8 @@ public:
     int32_t GetAmpRuntime();
 
     void setSigForm(uint8_t sigform);
+
+  private:
+    FLTBnc fltbnc;
+    FLTDec fltdec;
 };
