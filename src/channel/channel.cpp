@@ -1,8 +1,6 @@
 #include "channel.hpp"
 #include "math/sintbl.hpp"
 
-
-
 static int slidespd = 0;
 
 VHAudioChannel::VHAudioChannel() {
@@ -37,10 +35,12 @@ VHAudioChannel::VHAudioChannel() {
   voiceTrial.subtype = -3;
   voiceTrial.subamplitude = 64;
 
+  // Voice Up
   voiceOU.subenabled = DBG_CHN_VOIOU_EN;
   voiceOU.subtype = 0x7FFE;
   voiceOU.subamplitude = 64;
 
+  // Voice Down
   voiceOD.subenabled = DBG_CHN_VOIOD_EN;
   voiceOD.subtype = 0x7FFE;
   voiceOD.subamplitude = 64;
@@ -49,6 +49,7 @@ VHAudioChannel::VHAudioChannel() {
   sEffExtruder.enabled = DBG_CHN_EXTRUD_EN;
   sEffExtruder.level = 128; // / 16;
 
+  // Distortion
   sEffDist.enabled = DBG_CHN_DISTOR_EN;
   sEffDist.value = (int16_t)(4 * 1024);
 
@@ -95,7 +96,6 @@ int16_t VHAudioChannel::Render() {
   if (voiceBase.keyState == nKeyState_Off)
     return 0;
 
-  int32_t amplitudeRuntime = GetAmpRuntime();
   uint16_t adsr[] = {volumePattern.attackClocks, volumePattern.decayClocks,
                      volumePattern.sustainClocks, volumePattern.releaseClocks};
   bool last = (volumeRuntime.pos == adsr[volumeRuntime.state]);
@@ -110,11 +110,16 @@ int16_t VHAudioChannel::Render() {
   voiceBase.freqrangle += voiceBase.freqfangle;
   voiceBase.freqrangle &= 0xFFFF;
 
+  // Calculate Signal value
   enSigForm form = (enSigForm)voiceBase.sigtype;
   uint16_t angle = voiceBase.freqrangle >> 4;
   uint16_t asym = voiceBase.asymmetry_val;
-  int32_t sigval = VHSigSrc::value(form, angle, asym);
-  int16_t r = (int)(sigval * (amplitudeRuntime / 2)) / 1024;
+  int16_t sigval = VHSigSrc::value(form, angle, asym) / 2;
+
+  sigval = fltbnc.ins(sigval);
+  // sigval = fltdec.ins(sigval);
+
+  int16_t r = (int)((int32_t)sigval * GetAmpRuntime()) / 1024; //  / 2048;
 
   // Extruder
   bool pside = (r >= 0);
@@ -135,6 +140,7 @@ int16_t VHAudioChannel::Render() {
   }
 
   // Subvoice render
+
   if (voiceDual.subenabled) {
     // voiceDual.freqrangle += voiceDual.freqfangle;
     // voiceDual.freqrangle &= 0xFFFF;

@@ -30,9 +30,9 @@
 //#define CHN_DEFCFG_FORM eSigForm_SIN
 //#define CHN_DEFCFG_FORM eSigForm_SAW
 //#define CHN_DEFCFG_FORM eSigForm_MEA
-//#define CHN_DEFCFG_FORM eSigForm_ISIN
+#define CHN_DEFCFG_FORM eSigForm_ISIN
 //#define CHN_DEFCFG_FORM eSigForm_SIN_SH
-#define CHN_DEFCFG_FORM eSigForm_SIN_DL
+//#define CHN_DEFCFG_FORM eSigForm_SIN_DL
 
 // Default channel timing
 
