@@ -75,34 +75,50 @@ void VHSigSrc::Init() {
     }
 }
 
-int16_t VHSigSrc::value(enSigForm form, uint16_t angle, uint16_t path1) {
+uint16_t VHSigSrc::rescl(uint16_t angle, sSigScale *pscl) {
 
-  // Round if overflow
+  uint16_t wdeg1 = pscl->DEGT - pscl->DEGF;
+  // uint16_t wdeg2 = DEG360 - wdeg1;
+  uint16_t wscl1 = pscl->SCLT - pscl->SCLF;
+  // uint16_t wscl2 = DEG360 - wscl1;
+  uint32_t r;
+
+  if (angle < pscl->SCLF) {
+
+    r = (angle * pscl->DEGF) / pscl->SCLF;
+
+  } else if (angle < pscl->SCLT) {
+
+    uint32_t a = angle - pscl->SCLF;
+    r = pscl->DEGF + (a * wdeg1 / wscl1);
+
+  } else {
+
+    uint32_t a = angle - pscl->SCLT;
+    uint16_t d1 = DEG360 - pscl->DEGT;
+    uint16_t d2 = DEG360 - pscl->SCLT;
+    r = pscl->DEGT + (a * d1 / d2);
+  }
+
+  return r;
+}
+
+//
+// +++|+++|+++|+++
+// ++|+++++++++|++
+
+int16_t VHSigSrc::value(enSigForm form, uint16_t angle, sSigScale *pscl) {
+
+  // Round on overflow
   uint16_t roundangle = ROUNDANG(angle);
 
-  // path1 == DEG180 ? middle point
-  uint16_t path2 = DEG360 - path1;
+  uint16_t finangle = (pscl == nullptr) ? roundangle : rescl(roundangle, pscl);
 
-  // first half / second full
-  bool firsthalf = roundangle < path1;
+  // quarter (0,1,2,3) is 2 high bits
+  uint8_t hh = (finangle >> 10) & 3;
 
-  //
-  uint16_t starta = firsthalf ? 0 : 2048;
-
-  //
-  uint16_t curpath = firsthalf ? path1 : path2;
-
-  //
-  uint16_t posa = roundangle - (!firsthalf ? path1 : 0);
-
-  //
-  uint16_t safeangle = starta + APPROX(posa, (1 << 11), curpath);
-
-  // quarter # is 2 high bits
-  uint8_t hh = (safeangle >> 10) & 3;
-
-  // final angle
-  uint16_t tblangle = safeangle & ROUNDMASK(10);
+  // final angle is lowest 10 bits
+  uint16_t tblangle = finangle & ROUNDMASK(10);
 
   // ---------------------
   // Fast call table

@@ -25,7 +25,7 @@ public:
   int16_t ins(int16_t val) {
 
     bool dirpos = val >= prev;
-    int16_t dy = dirpos ? (val - prev) : (prev - val);
+    int16_t dy = (dirpos ? (val - prev) : (prev - val)) * 2;
 
     if (dy != 0) {
 
@@ -47,7 +47,11 @@ public:
 
     int16_t r = val + acc;
 
-    acc = (acc / 2);
+    if (acc) {
+      acc -= (acc / 2);
+    } else {
+      acc += (acc / 2);
+    }
 
     prev = val;
 
@@ -57,7 +61,6 @@ public:
 private:
   int16_t prev = 0;
   int16_t acc = 0;
-  int16_t decr = 4;
 };
 
 #endif // FLTBNC_HPP

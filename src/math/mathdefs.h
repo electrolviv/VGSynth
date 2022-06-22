@@ -12,9 +12,21 @@
 #define ROUNDMASK(BITS) ((1 << BITS) - 1)
 #define ROUNDANG(V) (V & ROUNDMASK(12))
 
-#define DEG180 2048
+#define DEG0 0
 #define DEG360 4096
 
+#define DEG180 (DEG360 >> 1)
+
+#define DEG90 (DEG180 >> 1)
+#define DEG270 (DEG180 + DEG90)
+
+#define DEG45 (DEG90 >> 1)
+#define DEG315 (DEG270 + DEG45)
+
+#define DEG30 (DEG90 / 3)
+#define DEG330 (DEG360 - DEG30)
+
+// min max values
 #define I16MAX (32767)
 #define I16MIN (-32767)
 
