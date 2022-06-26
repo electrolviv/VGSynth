@@ -18,6 +18,21 @@
 
 #define AUDIO_BUFF_SIZE (1024 * 4)
 
+//#define CHN_DEFCFG_FORM eSigForm_SIN
+//#define CHN_DEFCFG_FORM eSigForm_MEA
+//#define CHN_DEFCFG_FORM eSigForm_ISIN
+//#define CHN_DEFCFG_FORM eSigForm_SIN_SH
+//#define CHN_DEFCFG_FORM eSigForm_SIN_DL
+
+
+// Channel switch
+#define DEF_MULTICHNS 1
+
+// Default instrument configuration
+#define DEF_FORM 1
+
+#if DEF_FORM == 1
+
 #define DBG_CHN_DUAL_EN 0
 #define DBG_CHN_TRIA_EN 0
 #define DBG_CHN_VOIOU_EN 0
@@ -27,12 +42,7 @@
 #define DBG_CHN_FLANGE_EN 0
 #define DBG_CHN_SLIDE_EN 0
 
-//#define CHN_DEFCFG_FORM eSigForm_SIN
-//#define CHN_DEFCFG_FORM eSigForm_SAW
-//#define CHN_DEFCFG_FORM eSigForm_MEA
 #define CHN_DEFCFG_FORM eSigForm_ISIN
-//#define CHN_DEFCFG_FORM eSigForm_SIN_SH
-//#define CHN_DEFCFG_FORM eSigForm_SIN_DL
 
 // Default channel timing
 
@@ -44,7 +54,11 @@
 #define CHN_DEFCFG_CLKS_SUS 14200
 #define CHN_DEFCFG_CLKS_REL 64000
 
-// TODO ?
-#define CHN_DEFCFG_ASYM_OFFSET 1024
+#define CHN_DEFCFG_ASYM_OFFSET 128
 
-#define CHN_DEFCFG_ASYM_VALUE 2048
+// 2048
+#define CHN_DEFCFG_ASYM_VALUE 1024
+
+#else
+#error("Source signal not defined")
+#endif

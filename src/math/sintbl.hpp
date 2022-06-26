@@ -15,6 +15,13 @@ enum enSigForm {
   eSigForm_Last
 };
 
+struct sSigScale {
+  uint16_t DEGF; //!< Origin angle from
+  uint16_t DEGT; //!< Origin angle to
+  uint16_t SCLF; //!< Scalled angle from
+  uint16_t SCLT; //!< Scalled angle to
+};
+
 class VHSigSrc {
 public:
   static void Init();
@@ -25,9 +32,12 @@ public:
    *  Return value : -int16 ... +int16
    */
 
-  static int16_t value(enSigForm form, uint16_t angle, uint16_t path1 = 2048);
+  static int16_t value(enSigForm form, uint16_t angle,
+                       sSigScale *pscl = nullptr);
 
 private:
   // Reserved
   // static int16_t cosvalue(uint8_t hh, uint16_t angle);
+
+  static uint16_t rescl(uint16_t angle, sSigScale *pscl);
 };

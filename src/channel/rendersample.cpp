@@ -19,7 +19,9 @@ static void ProcessKey(uint8_t k) {
   uint16_t freq = VHMIDI::pckeyfreq(k);
 
   channels[channelreadyidx].Press(freq);
+#if DEF_MULTICHNS > 0
   channelreadyidx++;
+#endif
   if (channelreadyidx >= AUDIO_CHN_CNT)
     channelreadyidx = 0;
 }

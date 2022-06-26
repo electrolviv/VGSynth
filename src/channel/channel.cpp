@@ -1,7 +1,13 @@
 #include "channel.hpp"
 #include "math/sintbl.hpp"
 
+#include "../math/mathdefs.h"
+
 static int slidespd = 0;
+
+sSigScale sScale = {DEG90, DEG270, DEG45, DEG315};
+// sSigScale sScale = {DEG90, DEG270, DEG30, DEG330};
+// sSigScale sScale = {DEG90, DEG270, DEG0, DEG180};
 
 VHAudioChannel::VHAudioChannel() {
 
@@ -112,14 +118,21 @@ int16_t VHAudioChannel::Render() {
 
   // Calculate Signal value
   enSigForm form = (enSigForm)voiceBase.sigtype;
+
+  // uint16_t angle = voiceBase.freqrangle >> 4;
+  // uint16_t asym = voiceBase.asymmetry_val;
+  // int16_t sigval = VHSigSrc::value(form, angle, asym) / 2;
+
   uint16_t angle = voiceBase.freqrangle >> 4;
-  uint16_t asym = voiceBase.asymmetry_val;
-  int16_t sigval = VHSigSrc::value(form, angle, asym) / 2;
+  // int16_t sigval = VHSigSrc::value(form, angle, nullptr) / 2;
+  int16_t sigval = VHSigSrc::value(form, angle, &sScale) / 2;
 
   sigval = fltbnc.ins(sigval);
   // sigval = fltdec.ins(sigval);
 
-  int16_t r = (int)((int32_t)sigval * GetAmpRuntime()) / 1024; //  / 2048;
+  // int16_t r = (int)((int32_t)sigval * GetAmpRuntime()) / 256;
+  // int16_t r = (int)((int32_t)sigval * GetAmpRuntime()) / 512;
+  int16_t r = (int)((int32_t)sigval * GetAmpRuntime()) / 1024;
 
   // Extruder
   bool pside = (r >= 0);
