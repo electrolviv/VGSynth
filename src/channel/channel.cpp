@@ -85,12 +85,12 @@ void VHAudioChannel::Press(int note) {
   }
 
   if (voiceOU.subenabled) {
-    voiceOU.freqfangle = FREQMACRO1(note + voiceOU.subtype);
+    voiceOU.freqfangle = FREQMACRO1(note) << 1;
     voiceOU.freqrangle = 0;
   }
 
   if (voiceOD.subenabled) {
-    voiceOD.freqfangle = FREQMACRO1(note + voiceOD.subtype);
+    voiceOD.freqfangle = FREQMACRO1(note) >> 1;
     voiceOD.freqrangle = 0;
   }
 }
@@ -132,7 +132,7 @@ int16_t VHAudioChannel::Render() {
 
   // int16_t r = (int)((int32_t)sigval * GetAmpRuntime()) / 256;
   // int16_t r = (int)((int32_t)sigval * GetAmpRuntime()) / 512;
-  int16_t r = (int)((int32_t)sigval * GetAmpRuntime()) / 1024;
+  int16_t r = (int)((int32_t)sigval * GetAmpRuntime()) / (1024 * 2);
 
   // Extruder
   bool pside = (r >= 0);
@@ -161,6 +161,24 @@ int16_t VHAudioChannel::Render() {
     // uint16_t lamplitude = amplitudeRuntime * voiceDual.subamplitude >> 10;
     // r += GetSourceGenerator(voiceBase.sigtype, langle) * (lamplitude / 2) /
     // 1024;
+  }
+
+  if (voiceOU.subenabled) {
+    voiceOU.freqrangle += voiceOU.freqfangle;
+    voiceOU.freqrangle &= 0xFFFF;
+    uint16_t angle = voiceOU.freqrangle >> 4;
+    int16_t sigval = VHSigSrc::value(form, angle, &sScale) / 2;
+    // sigval = fltbnc.ins(sigval);
+    r += (int)((int32_t)sigval * GetAmpRuntime()) / (1024 * 4);
+  }
+
+  if (voiceOD.subenabled) {
+    voiceOD.freqrangle += voiceOD.freqfangle;
+    voiceOD.freqrangle &= 0xFFFF;
+    uint16_t angle = voiceOD.freqrangle >> 4;
+    int16_t sigval = VHSigSrc::value(form, angle, &sScale) / 2;
+    // sigval = fltbnc.ins(sigval);
+    r += (int)((int32_t)sigval * GetAmpRuntime()) / (1024 * 4);
   }
 
 #if (DBG_CHN_FLANGE_EN > 0)
