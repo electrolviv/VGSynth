@@ -13,6 +13,7 @@
 #include "rendersample.hpp"
 #include "audiodrv.hpp"
 
+#include "sigsrc.hpp"
 
 #include "wnd/masterchannel.hpp"
 
@@ -122,6 +123,7 @@ void testcase_000_sintable() {
   }
   exit(0);
 }
+
 
 int main() {
 
