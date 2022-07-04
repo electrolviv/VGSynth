@@ -2,6 +2,7 @@
 #include "abuffer.hpp"
 #include "midi/vhmididefs.hpp"
 #include "patterns.hpp"
+#include "sigsrc.hpp"
 
 #include "runtime/keyboard.hpp"
 #include "runtime/sysclock.hpp"

@@ -1,11 +1,11 @@
 #include "channel.hpp"
 #include "math/sintbl.hpp"
 
-#include "../math/mathdefs.h"
+#include "sigsrc.hpp"
 
 static int slidespd = 0;
 
-sSigScale sScale = {DEG90, DEG270, DEG45, DEG315};
+// sSigScale sScale = {DEG90, DEG270, DEG45, DEG315};
 // sSigScale sScale = {DEG90, DEG270, DEG30, DEG330};
 // sSigScale sScale = {DEG90, DEG270, DEG0, DEG180};
 
@@ -60,11 +60,15 @@ VHAudioChannel::VHAudioChannel() {
   sEffDist.value = (int16_t)(4 * 1024);
 
   flangePos = 0;
+
+  // Frequency drifting
+  effectDrift.Set(7, 11, 2200);
 }
 
 VHAudioChannel::~VHAudioChannel() {}
 
 void VHAudioChannel::Press(int note) {
+
   volumeRuntime.state = 0;
   volumeRuntime.pos = 0;
 
@@ -93,9 +97,14 @@ void VHAudioChannel::Press(int note) {
     voiceOD.freqfangle = FREQMACRO1(note) >> 1;
     voiceOD.freqrangle = 0;
   }
+
+  if (effectDrift.IsEnabled())
+    effectDrift.Press();
 }
 
-void VHAudioChannel::Off() { voiceBase.keyState = nKeyState_Off; }
+void VHAudioChannel::Off() {
+  voiceBase.keyState = nKeyState_Off; // Mute
+}
 
 int16_t VHAudioChannel::Render() {
 
@@ -113,8 +122,13 @@ int16_t VHAudioChannel::Render() {
     return 0;
   }
 
+  if (effectDrift.IsEnabled()) {
+    effectDrift.Tick();
+    voiceBase.freqrangle += effectDrift.GetDriftValue();
+  }
+
   voiceBase.freqrangle += voiceBase.freqfangle;
-  voiceBase.freqrangle &= 0xFFFF;
+  // voiceBase.freqrangle &= 0xFFFF;
 
   // Calculate Signal value
   enSigForm form = (enSigForm)voiceBase.sigtype;
@@ -124,15 +138,16 @@ int16_t VHAudioChannel::Render() {
   // int16_t sigval = VHSigSrc::value(form, angle, asym) / 2;
 
   uint16_t angle = voiceBase.freqrangle >> 4;
-  // int16_t sigval = VHSigSrc::value(form, angle, nullptr) / 2;
-  int16_t sigval = VHSigSrc::value(form, angle, &sScale) / 2;
+  int16_t sigval = VHSigSrc::value(form, angle, nullptr) / 2;
+  // int16_t sigval = VHSigSrc::value(form, angle, &sScale) / 2;
 
-  sigval = fltbnc.ins(sigval);
+  // sigval = fltbnc.ins(sigval);
   // sigval = fltdec.ins(sigval);
 
   // int16_t r = (int)((int32_t)sigval * GetAmpRuntime()) / 256;
   // int16_t r = (int)((int32_t)sigval * GetAmpRuntime()) / 512;
-  int16_t r = (int)((int32_t)sigval * GetAmpRuntime()) / (1024 * 2);
+  int16_t r = (int)((int32_t)sigval * GetAmpRuntime()) / 1024;
+  // int16_t r = (int)((int32_t)sigval * GetAmpRuntime()) / (1024 * 2);
 
   // Extruder
   bool pside = (r >= 0);
@@ -167,7 +182,10 @@ int16_t VHAudioChannel::Render() {
     voiceOU.freqrangle += voiceOU.freqfangle;
     voiceOU.freqrangle &= 0xFFFF;
     uint16_t angle = voiceOU.freqrangle >> 4;
-    int16_t sigval = VHSigSrc::value(form, angle, &sScale) / 2;
+
+    int16_t sigval = VHSigSrc::value(form, angle, nullptr) / 2;
+    // int16_t sigval = VHSigSrc::value(form, angle, &sScale) / 2;
+
     // sigval = fltbnc.ins(sigval);
     r += (int)((int32_t)sigval * GetAmpRuntime()) / (1024 * 4);
   }
@@ -176,7 +194,8 @@ int16_t VHAudioChannel::Render() {
     voiceOD.freqrangle += voiceOD.freqfangle;
     voiceOD.freqrangle &= 0xFFFF;
     uint16_t angle = voiceOD.freqrangle >> 4;
-    int16_t sigval = VHSigSrc::value(form, angle, &sScale) / 2;
+    int16_t sigval = VHSigSrc::value(form, angle, nullptr) / 2;
+    // int16_t sigval = VHSigSrc::value(form, angle, &sScale) / 2;
     // sigval = fltbnc.ins(sigval);
     r += (int)((int32_t)sigval * GetAmpRuntime()) / (1024 * 4);
   }
