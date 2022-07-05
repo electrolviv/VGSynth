@@ -7,6 +7,7 @@
 #include "fltdec.hpp"
 
 #include "effect_freq_drift.hpp"
+#include "effect_vol_drift.hpp"
 
 class VHAudioChannel {
 
@@ -42,7 +43,10 @@ public:
   };
 
   //
-  EffectFrequencyDrift effectDrift;
+  EffectVolumeDrift effectVolDrift;
+
+  //
+  EffectFrequencyDrift effectFreqDrift;
 
   struct stBaseVoice {
 
