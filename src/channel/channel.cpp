@@ -61,8 +61,11 @@ VHAudioChannel::VHAudioChannel() {
 
   flangePos = 0;
 
+  // Volume drifting
+  effectVolDrift.Set(7, 112, 130);
+
   // Frequency drifting
-  effectDrift.Set(7, 11, 2200);
+  // effectFreqDrift.Set(6, 5, 1200);
 }
 
 VHAudioChannel::~VHAudioChannel() {}
@@ -98,8 +101,12 @@ void VHAudioChannel::Press(int note) {
     voiceOD.freqrangle = 0;
   }
 
-  if (effectDrift.IsEnabled())
-    effectDrift.Press();
+  if (effectVolDrift.IsEnabled()) {
+    effectVolDrift.Press();
+  }
+
+  if (effectFreqDrift.IsEnabled())
+    effectFreqDrift.Press();
 }
 
 void VHAudioChannel::Off() {
@@ -122,9 +129,13 @@ int16_t VHAudioChannel::Render() {
     return 0;
   }
 
-  if (effectDrift.IsEnabled()) {
-    effectDrift.Tick();
-    voiceBase.freqrangle += effectDrift.GetDriftValue();
+  if (effectVolDrift.IsEnabled()) {
+    effectVolDrift.Tick();
+  }
+
+  if (effectFreqDrift.IsEnabled()) {
+    effectFreqDrift.Tick();
+    voiceBase.freqrangle += effectFreqDrift.GetDriftValue();
   }
 
   voiceBase.freqrangle += voiceBase.freqfangle;
@@ -141,7 +152,7 @@ int16_t VHAudioChannel::Render() {
   int16_t sigval = VHSigSrc::value(form, angle, nullptr) / 2;
   // int16_t sigval = VHSigSrc::value(form, angle, &sScale) / 2;
 
-  // sigval = fltbnc.ins(sigval);
+  sigval = fltbnc.ins(sigval);
   // sigval = fltdec.ins(sigval);
 
   // int16_t r = (int)((int32_t)sigval * GetAmpRuntime()) / 256;
@@ -237,6 +248,11 @@ int32_t VHAudioChannel::GetAmpRuntime() {
   int32_t r;
   auto pos = volumeRuntime.pos;
 
+  // TODO: Optimize / Fix !
+  // Volume Drift Amplitude
+  int16_t voldrift =
+      effectVolDrift.IsEnabled() ? effectVolDrift.GetDriftValue() : 0;
+
   switch (volumeRuntime.state) {
 
   case nVolumeAttack: {
@@ -249,17 +265,18 @@ int32_t VHAudioChannel::GetAmpRuntime() {
   case nVolumeDecay: {
     auto wdth = volumePattern.decayClocks;
     auto hght = voiceBase.amplitudeatt - voiceBase.amplitudesus;
-    r = voiceBase.amplitudeatt - APPROX(pos, hght, wdth);
+    r = (voiceBase.amplitudeatt + voldrift) -
+        APPROX(pos, hght + +voldrift, wdth);
   } break;
 
   case nVolumeSustain: {
-    r = voiceBase.amplitudesus;
+    r = voiceBase.amplitudesus + voldrift;
   } break;
 
   case nVolumeRelease: {
     auto wdth = volumePattern.releaseClocks;
-    auto hght = voiceBase.amplitudesus;
-    r = voiceBase.amplitudesus - APPROX(pos, hght, wdth);
+    auto hght = voiceBase.amplitudesus + voldrift;
+    r = hght - APPROX(pos, hght, wdth);
 
   } break;
 

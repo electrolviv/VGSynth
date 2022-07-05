@@ -6,7 +6,7 @@
 class FLTDec {
 
 public:
-  FLTDec() : prev(0), deltamax(4000) {}
+  FLTDec() : prev(0), deltamax(12000) {}
 
   int16_t ins(int16_t val) {
 
