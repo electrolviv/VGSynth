@@ -7,7 +7,7 @@ int16_t     *   scr_GetAudBuffPtr();
 class WNDMasterChannel {
 
 public:
-  static const int WNDWIDTH = (256 * 4);
+  static const int WNDWIDTH = (264 * 4);
   static const int WNDHEIGHT = 128 * 6;
 
   WNDMasterChannel() {}
