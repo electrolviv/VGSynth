@@ -174,7 +174,7 @@ void *WNDMasterChannel::task(void *parg) {
 	int idx = (j * 4) + i;
 
 	// Render channels
-	SDL_Rect dstrect = {i * 260, j * 130, 256, 128};
+	SDL_Rect dstrect = {i * 264, j * 136, 256, 128};
 
 	// int16_t *pabuff = scr_GetAudBuffPtr();
 	int16_t *pabuff = abuffers[idx].buff;
